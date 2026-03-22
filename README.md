@@ -276,6 +276,23 @@ GhostOffice is built with a security-first mindset. Every byte of sensitive data
 
 ## 📚 Version History
 
+### 🔵 v3.1.0 — "The Dashboard Edition" *(March 2026)*
+
+Major dashboard improvements and demo mode for evaluations.
+
+**What's new:**
+- First-run setup wizard with 4-step guided configuration
+- Dedicated Email Brain page with classification stats and draft reply modal
+- Notification bell with SQLite-backed real-time alerts
+- Demo mode for showcasing fully populated dashboard
+- Data Flow Monitor with two-column visual design
+- Watch folder management via dashboard UI
+- Security status indicator (Fully Secure / Partially Secure)
+- Quick actions and activity feed on dashboard
+- Learning page with Chart.js score projection
+
+---
+
 ### 🔵 v3.0.0 — "The Enterprise Edition" *(March 2026)*
 
 The most hardened and feature-complete release. Built for teams, freelancers, and privacy-obsessed power users.
@@ -436,8 +453,8 @@ services:
 
 | Version | ETA | Features |
 |---------|-----|----------|
-| **v3.1** | Q2 2026 | Google Calendar API · Multi-language support · Enhanced voice commands |
-| **v3.2** | Q3 2026 | Mobile companion app · Slack/Teams integration · Advanced analytics |
+| **v3.2** | Q2 2026 | Google Calendar API · Multi-language support · Enhanced voice commands |
+| **v3.3** | Q3 2026 | Mobile companion app · Slack/Teams integration · Advanced analytics |
 | **v4.0** | Q4 2026 | Multi-user support · Team collaboration · Custom model fine-tuning |
 
 ---
