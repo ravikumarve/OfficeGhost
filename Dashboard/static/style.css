@@ -236,6 +236,23 @@ main.with-sidebar {
     justify-content: space-between;
     align-items: flex-start;
     margin-bottom: 2rem;
+    position: relative;
+}
+
+.page-header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    width: 100%;
+    padding-right: 70px;
+}
+
+.page-header-title {
+    flex: 1;
+}
+
+.page-header-actions {
+    flex-shrink: 0;
 }
 
 .page-header h1 {
@@ -1064,6 +1081,7 @@ main.with-sidebar {
     top: 1rem;
     right: 1.5rem;
     z-index: 200;
+    margin-right: 20px;
 }
 
 .bell-btn {
