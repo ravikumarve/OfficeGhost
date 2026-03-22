@@ -17,6 +17,22 @@
     </div>
 </div>
 
+<!-- Quick Actions -->
+<div class="quick-actions">
+    <button class="btn-outline" onclick="scanEmails()">
+        📧 Scan Emails
+    </button>
+    <button class="btn-outline" onclick="sortFiles()">
+        📁 Sort Files
+    </button>
+    <button class="btn-outline" onclick="extractData()">
+        📊 Extract Data
+    </button>
+    <button class="btn-outline" onclick="runCycle()">
+        🔄 Run All
+    </button>
+</div>
+
 <!-- Status Cards -->
 <div class="card-grid">
     <div class="card status-card">
@@ -261,6 +277,54 @@ async function runCycle() {
     } finally {
         btn.disabled = false;
         btn.textContent = '▶️ Run Cycle';
+    }
+}
+
+async function scanEmails() {
+    try {
+        const res = await fetch('/run-cycle', { method: 'POST' });
+        const data = await res.json();
+        if (data.error) {
+            alert(data.error);
+            if (data.needs_auth) window.location = '/login';
+            return;
+        }
+        alert(`Scanned ${data.emails_processed || 0} emails`);
+        setTimeout(() => location.reload(), 1500);
+    } catch (err) {
+        alert('Error: ' + err.message);
+    }
+}
+
+async function sortFiles() {
+    try {
+        const res = await fetch('/run-cycle', { method: 'POST' });
+        const data = await res.json();
+        if (data.error) {
+            alert(data.error);
+            if (data.needs_auth) window.location = '/login';
+            return;
+        }
+        alert(`Sorted ${data.files_organized || 0} files`);
+        setTimeout(() => location.reload(), 1500);
+    } catch (err) {
+        alert('Error: ' + err.message);
+    }
+}
+
+async function extractData() {
+    try {
+        const res = await fetch('/run-cycle', { method: 'POST' });
+        const data = await res.json();
+        if (data.error) {
+            alert(data.error);
+            if (data.needs_auth) window.location = '/login';
+            return;
+        }
+        alert(`Extracted ${data.data_entries || 0} data entries`);
+        setTimeout(() => location.reload(), 1500);
+    } catch (err) {
+        alert('Error: ' + err.message);
     }
 }
 
