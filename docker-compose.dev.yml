@@ -1,0 +1,80 @@
+version: '3.8'
+
+# GhostOffice Development Docker Compose
+# Use: docker-compose -f docker-compose.dev.yml up -d
+
+services:
+  # GhostOffice Development
+  ghostoffice-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: ghostoffice-dev
+    restart: unless-stopped
+    ports:
+      - "5000:5000"  # Dashboard
+      - "5678:5678"  # Debug port
+    environment:
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONUNBUFFERED=1
+      - FLASK_ENV=development
+      - FLASK_DEBUG=1
+      # Ollama
+      - OLLAMA_HOST=http://host.docker.internal:11434
+      - OLLAMA_MODEL=phi3:mini
+      # Email (configure your accounts)
+      - EMAIL_1_ADDRESS=${EMAIL_1_ADDRESS:-}
+      - EMAIL_1_PASSWORD=${EMAIL_1_PASSWORD:-}
+      - EMAIL_1_IMAP_HOST=${EMAIL_1_IMAP_HOST:-imap.gmail.com}
+      - EMAIL_1_SMTP_HOST=${EMAIL_1_SMTP_HOST:-smtp.gmail.com}
+      # Files
+      - WATCH_FOLDERS=/watch/Downloads,/watch/Desktop
+      - ORGANIZED_ROOT=/data/Organized
+      # Security
+      - AUTO_LOCK_MINUTES=30
+    volumes:
+      # Persist data
+      - ghostoffice-dev-data:/app/data
+      # Watch folders
+      - ~/Downloads:/watch/Downloads:ro
+      - ~/Desktop:/watch/Desktop:ro
+      # Hot reload - mount source code
+      - ./Core:/app/Core:delegated
+      - ./Security:/app/Security:delegated
+      - ./Modules:/app/Modules:delegated
+      - ./Learning:/app/Learning:delegated
+      - ./Dashboard:/app/Dashboard:delegated
+      - ./main.py:/app/main.py:delegated
+    networks:
+      - ghostoffice-dev-network
+    stdin_open: true
+    tty: true
+
+  # Ollama for development
+  ollama-dev:
+    image: ollama/ollama:latest
+    container_name: ghostoffice-ollama-dev
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-dev-data:/root/.ollama
+    networks:
+      - ghostoffice-dev-network
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+networks:
+  ghostoffice-dev-network:
+    driver: bridge
+
+volumes:
+  ghostoffice-dev-data:
+    driver: local
+  ollama-dev-data:
+    driver: local

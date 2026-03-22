@@ -1,10 +1,16 @@
 version: '3.8'
 
+# GhostOffice Docker Compose
+# Use: docker-compose up -d (production)
+# Use: docker-compose -f docker-compose.dev.yml up -d (development)
+
 services:
-  # AI Office Pilot
-  pilot:
-    build: .
-    container_name: ai-office-pilot
+  # GhostOffice Application
+  ghostoffice:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: ghostoffice
     restart: unless-stopped
     ports:
       - "5000:5000"  # Dashboard
@@ -31,12 +37,12 @@ services:
       - ENABLE_DESKTOP_NOTIFICATIONS=false
     volumes:
       # Persist data
-      - pilot-data:/app/data
+      - ghostoffice-data:/app/data
       # Watch folders (create these on host)
       - ~/Downloads:/watch/Downloads:ro
       - ~/Desktop:/watch/Desktop:ro
     networks:
-      - pilot-network
+      - ghostoffice-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
       interval: 30s
@@ -47,14 +53,14 @@ services:
   # Ollama (optional - if not using host Ollama)
   ollama:
     image: ollama/ollama:latest
-    container_name: ollama
+    container_name: ghostoffice-ollama
     restart: unless-stopped
     ports:
       - "11434:11434"
     volumes:
       - ollama-data:/root/.ollama
     networks:
-      - pilot-network
+      - ghostoffice-network
     deploy:
       resources:
         reservations:
@@ -64,11 +70,11 @@ services:
               capabilities: [gpu]
 
 networks:
-  pilot-network:
+  ghostoffice-network:
     driver: bridge
 
 volumes:
-  pilot-data:
+  ghostoffice-data:
     driver: local
   ollama-data:
     driver: local

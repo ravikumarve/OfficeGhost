@@ -1,6 +1,9 @@
-# AI Office Pilot Dockerfile
-# Multi-stage build for smaller production image
+# GhostOffice Dockerfile
+# Multi-stage build for optimized production image
 
+# ─────────────────────────────────────────────
+# BUILDER STAGE
+# ─────────────────────────────────────────────
 FROM python:3.11-slim as builder
 
 WORKDIR /app
@@ -15,7 +18,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements.txt .
 RUN pip install --no-cache-dir --user -r requirements.txt
 
-# Production stage
+# ─────────────────────────────────────────────
+# PRODUCTION STAGE
+# ─────────────────────────────────────────────
 FROM python:3.11-slim
 
 WORKDIR /app
@@ -33,22 +38,22 @@ ENV PATH=/root/.local/bin:$PATH
 COPY . .
 
 # Create non-root user for security
-RUN groupadd -r pilot && useradd -r -g pilot pilot
+RUN groupadd -r ghostoffice && useradd -r -g ghostoffice ghostoffice
 
 # Create data directories
 RUN mkdir -p /app/data/logs /app/data/backups /app/data/reports && \
-    chown -R pilot:pilot /app
+    chown -R ghostoffice:ghostoffice /app
 
-USER pilot
+USER ghostoffice
 
-# Environment defaults
+# Environment defaults for production
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV OLLAMA_HOST=http://host.docker.internal:11434
 
-# Health check
+# Health check - verify Ollama is accessible
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD python -c "import requests; requests.get('http://localhost:11434/api/tags', timeout=5)"
+    CMD python -c "import requests; requests.get('http://localhost:11434/api/tags', timeout=5)" || exit 1
 
 # Expose dashboard port
 EXPOSE 5000
