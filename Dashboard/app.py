@@ -148,6 +148,56 @@ def index():
     return render_template("landing.html")
 
 
+@app.route("/docs")
+def docs():
+    """Documentation page"""
+    return """
+    <!DOCTYPE html>
+    <html lang="en" data-theme="dark">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Documentation — GhostOffice</title>
+        <style>
+            body { font-family: 'Inter', sans-serif; max-width: 900px; margin: 0 auto; padding: 40px 20px; background: #1a1a2e; color: #fff; }
+            h1 { color: #6366f1; }
+            h2 { color: #a855f7; margin-top: 40px; }
+            a { color: #6366f1; }
+            code { background: #16213e; padding: 2px 8px; border-radius: 4px; }
+            pre { background: #16213e; padding: 20px; border-radius: 8px; overflow-x: auto; }
+            .nav { margin-bottom: 30px; }
+            .nav a { margin-right: 20px; }
+        </style>
+    </head>
+    <body>
+        <div class="nav">
+            <a href="/">← Back to Home</a>
+            <a href="https://github.com/ravikumarve/OfficeGhost" target="_blank">GitHub →</a>
+        </div>
+        <h1>📖 GhostOffice Documentation</h1>
+        
+        <h2>Quick Start</h2>
+        <pre>pip install -r requirements.txt
+python3 setup.py
+python3 main.py</pre>
+
+        <h2>Dashboard</h2>
+        <p>Access the web dashboard at: <code>http://localhost:5000</code></p>
+
+        <h2>Configuration</h2>
+        <p>Copy <code>.env.example</code> to <code>.env</code> and configure your email accounts.</p>
+
+        <h2>GitHub</h2>
+        <p>For full documentation, source code, and contributions, visit:</p>
+        <p><a href="https://github.com/ravikumarve/OfficeGhost" target="_blank">https://github.com/ravikumarve/OfficeGhost</a></p>
+        
+        <hr style="margin-top: 60px; border-color: #333;">
+        <p style="color: #666;">GhostOffice v3.0 — Your Private AI Assistant</p>
+    </body>
+    </html>
+    """
+
+
 @app.route("/dashboard")
 @login_required
 def dashboard():
