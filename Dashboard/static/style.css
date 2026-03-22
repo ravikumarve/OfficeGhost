@@ -909,3 +909,11 @@ main.with-sidebar {
     outline: none;
     border-color: var(--accent);
 }
+
+/* Score Chart */
+.chart-container {
+    position: relative;
+    height: 300px;
+    width: 100%;
+    margin-top: 1rem;
+}

@@ -89,6 +89,13 @@ class MemoryEngine:
             sequence_id TEXT
         )""")
 
+        # Score History for Chart
+        c.execute("""CREATE TABLE IF NOT EXISTS score_history (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            timestamp TEXT NOT NULL,
+            score REAL NOT NULL
+        )""")
+
         # Discovered Patterns
         c.execute("""CREATE TABLE IF NOT EXISTS patterns (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -746,6 +753,26 @@ class MemoryEngine:
         score += min(8, categories_count)
         score += min(7, contacts_count)
 
+        # Get score history for chart and record current score
+        history = []
+        try:
+            # Record current score
+            c.execute(
+                "INSERT INTO score_history (timestamp, score) VALUES (?, ?)",
+                (datetime.now().isoformat(), round(min(100, score), 1))
+            )
+            conn.commit()
+            
+            # Get history
+            history_data = c.execute(
+                "SELECT timestamp, score FROM score_history ORDER BY timestamp DESC LIMIT 20"
+            ).fetchall()
+            for row in history_data:
+                history.append({"date": row[0][:10], "score": row[1]})
+            history.reverse()
+        except Exception:
+            pass
+        
         return {
             "learning_score": round(min(100, score), 1),
             "accuracy": accuracy,
@@ -756,4 +783,5 @@ class MemoryEngine:
             "total_actions": total_actions,
             "total_feedback": total_feedback,
             "patterns": patterns[:10],
+            "history": history,
         }

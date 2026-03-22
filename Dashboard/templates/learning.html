@@ -30,27 +30,8 @@
 
     <div class="score-timeline">
         <h4>Score Projection</h4>
-        <div class="projection-grid">
-            <div class="projection-row">
-                <span class="proj-label">Now:</span>
-                <span class="proj-value">{{ report.learning_score|default(0) }}</span>
-            </div>
-            <div class="projection-row">
-                <span class="proj-label">Day 1:</span>
-                <span class="proj-value">12</span>
-            </div>
-            <div class="projection-row">
-                <span class="proj-label">Week 1:</span>
-                <span class="proj-value">34</span>
-            </div>
-            <div class="projection-row">
-                <span class="proj-label">Month 1:</span>
-                <span class="proj-value">71</span>
-            </div>
-            <div class="projection-row">
-                <span class="proj-label">Month 6:</span>
-                <span class="proj-value">99</span>
-            </div>
+        <div class="chart-container">
+            <canvas id="scoreChart"></canvas>
         </div>
     </div>
 </div>
@@ -163,4 +144,115 @@
     </table>
 </div>
 {% endif %}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('scoreChart').getContext('2d');
+    
+    const currentScore = {{ report.learning_score|default(0) }};
+    
+    // Historical data from learning system
+    const historicalData = {{ report.history|default([]) }};
+    
+    // Projection data
+    const labels = ['Now', 'Day 1', 'Week 1', 'Month 1', 'Month 6'];
+    const projectionData = [currentScore, 12, 34, 71, 99];
+    
+    // Create historical line if data exists
+    let historicalLabels = [];
+    let historicalScores = [];
+    if (historicalData && historicalData.length > 0) {
+        historicalData.forEach(h => {
+            historicalLabels.push(h.date);
+            historicalScores.push(h.score);
+        });
+        // Add current point to historical
+        historicalLabels.push('Now');
+        historicalScores.push(currentScore);
+    }
+    
+    const datasets = [{
+        label: 'Projected Score',
+        data: projectionData,
+        borderColor: '#a855f7',
+        backgroundColor: 'rgba(168, 85, 247, 0.2)',
+        fill: true,
+        tension: 0.3,
+        pointBackgroundColor: '#a855f7',
+        pointBorderColor: '#fff',
+        pointRadius: 6,
+        pointHoverRadius: 8,
+        borderWidth: 3
+    }];
+    
+    if (historicalScores.length > 1) {
+        // Pad historical data to match projection length
+        const paddedHistorical = [...historicalScores];
+        while (paddedHistorical.length < labels.length) {
+            paddedHistorical.push(null);
+        }
+        datasets.push({
+            label: 'Historical Score',
+            data: paddedHistorical.slice(0, labels.length),
+            borderColor: '#22c55e',
+            backgroundColor: 'transparent',
+            fill: false,
+            tension: 0.2,
+            pointBackgroundColor: '#22c55e',
+            pointBorderColor: '#fff',
+            pointRadius: 5,
+            pointHoverRadius: 7,
+            borderWidth: 2,
+            borderDash: [5, 5]
+        });
+    }
+    
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: datasets
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top',
+                    labels: {
+                        color: '#94a3b8',
+                        usePointStyle: true,
+                        padding: 20
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    grid: {
+                        color: 'rgba(148, 163, 184, 0.1)'
+                    },
+                    ticks: {
+                        color: '#64748b',
+                        callback: function(value) {
+                            return value + '%';
+                        }
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        color: '#64748b'
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
 {% endblock %}
