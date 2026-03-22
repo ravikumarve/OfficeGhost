@@ -30,26 +30,26 @@
 
     <div class="score-timeline">
         <h4>Score Projection</h4>
-        <div class="timeline">
-            <div class="timeline-point" style="left: 5%">
-                <span class="point-label">Day 1</span>
-                <span class="point-value">12</span>
+        <div class="projection-grid">
+            <div class="projection-row">
+                <span class="proj-label">Now:</span>
+                <span class="proj-value">{{ report.learning_score|default(0) }}</span>
             </div>
-            <div class="timeline-point" style="left: 15%">
-                <span class="point-label">Week 1</span>
-                <span class="point-value">34</span>
+            <div class="projection-row">
+                <span class="proj-label">Day 1:</span>
+                <span class="proj-value">12</span>
             </div>
-            <div class="timeline-point" style="left: 35%">
-                <span class="point-label">Month 1</span>
-                <span class="point-value">71</span>
+            <div class="projection-row">
+                <span class="proj-label">Week 1:</span>
+                <span class="proj-value">34</span>
             </div>
-            <div class="timeline-point current" style="left: {{ report.learning_score|default(0) }}%">
-                <span class="point-label">Now</span>
-                <span class="point-value">{{ report.learning_score|default(0) }}</span>
+            <div class="projection-row">
+                <span class="proj-label">Month 1:</span>
+                <span class="proj-value">71</span>
             </div>
-            <div class="timeline-point" style="left: 93%">
-                <span class="point-label">Month 6</span>
-                <span class="point-value">99</span>
+            <div class="projection-row">
+                <span class="proj-label">Month 6:</span>
+                <span class="proj-value">99</span>
             </div>
         </div>
     </div>
