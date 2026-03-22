@@ -81,6 +81,13 @@ class Config:
     # ─── Setup ───
     SETUP_COMPLETE = os.getenv("SETUP_COMPLETE", "false").lower() == "true"
 
+    @classmethod
+    def reload(cls):
+        """Reload environment variables from .env file"""
+        load_dotenv(override=True)
+        cls.DEMO_MODE = os.getenv("DEMO_MODE", "false").lower() == "true"
+        cls.SETUP_COMPLETE = os.getenv("SETUP_COMPLETE", "false").lower() == "true"
+
     # ─── Security ───
     AUTO_LOCK_MINUTES = int(os.getenv("AUTO_LOCK_MINUTES", 30))
     SESSION_TIMEOUT_HOURS = int(os.getenv("SESSION_TIMEOUT_HOURS", 8))

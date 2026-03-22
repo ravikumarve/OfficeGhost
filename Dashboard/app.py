@@ -270,10 +270,14 @@ def complete_setup():
             new_lines.append(line)
     
     if not found:
+        if new_lines and not new_lines[-1].endswith("\n"):
+            new_lines[-1] = new_lines[-1] + "\n"
         new_lines.append("SETUP_COMPLETE=true\n")
     
     with open(env_path, "w") as f:
         f.writelines(new_lines)
+    
+    Config.reload()
     
     return jsonify({"status": "success"})
 
