@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block title %}Login — AI Office Pilot{% endblock %}
+
+{% block content %}
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-header">
+            <span class="login-logo">🤖</span>
+            <h1>AI Office Pilot</h1>
+            <p class="login-subtitle">
+                {% if setup %}
+                    Welcome! Let's secure your data.
+                {% else %}
+                    Enter your master password to unlock.
+                {% endif %}
+            </p>
+        </div>
+
+        <form method="POST" class="login-form">
+            {% if setup %}
+            <div class="setup-notice">
+                <span class="icon">🔐</span>
+                <div>
+                    <strong>First-Time Setup</strong>
+                    <p>Create a master password. This encrypts ALL your data
+                    with military-grade AES-256 encryption. This password is
+                    NEVER stored anywhere.</p>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="form-group">
+                <label for="password">
+                    {% if setup %}Create Master Password{% else %}Master Password{% endif %}
+                </label>
+                <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    placeholder="{% if setup %}Minimum 12 characters{% else %}Enter password{% endif %}"
+                    required
+                    minlength="{% if setup %}12{% else %}1{% endif %}"
+                    autocomplete="{% if setup %}new-password{% else %}current-password{% endif %}"
+                >
+                {% if setup %}
+                <div id="password-strength" class="password-strength"></div>
+                {% endif %}
+            </div>
+
+            {% if setup %}
+            <div class="form-group">
+                <label for="confirm_password">Confirm Password</label>
+                <input
+                    type="password"
+                    id="confirm_password"
+                    name="confirm_password"
+                    placeholder="Type password again"
+                    required
+                    minlength="12"
+                    autocomplete="new-password"
+                >
+            </div>
+            {% endif %}
+
+            <button type="submit" class="btn-primary btn-full">
+                {% if setup %}
+                    🔐 Setup & Encrypt
+                {% else %}
+                    🔓 Unlock
+                {% endif %}
+            </button>
+        </form>
+
+        <div class="login-footer">
+            <div class="security-badges">
+                <span class="badge">🔒 AES-256</span>
+                <span class="badge">🏠 100% Local</span>
+                <span class="badge">☁️ Zero Cloud</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if setup %}
+<script>
+document.getElementById('password').addEventListener('input', function(e) {
+    const pw = e.target.value;
+    let score = 0;
+    if (pw.length >= 12) score++;
+    if (pw.length >= 16) score++;
+    if (/[A-Z]/.test(pw) && /[a-z]/.test(pw)) score++;
+    if (/\d/.test(pw)) score++;
+    if (/[!@#$%^&*()_+\-=]/.test(pw)) score++;
+
+    const labels = ['Very Weak', 'Weak', 'Fair', 'Good', 'Strong', 'Very Strong'];
+    const colors = ['#ef4444', '#f97316', '#eab308', '#84cc16', '#22c55e', '#10b981'];
+
+    const el = document.getElementById('password-strength');
+    el.innerHTML = `
+        <div class="strength-bar">
+            <div class="strength-fill" style="width:${score*20}%;background:${colors[score]}"></div>
+        </div>
+        <span style="color:${colors[score]}">${labels[score]}</span>
+    `;
+});
+</script>
+{% endif %}
+{% endblock %}

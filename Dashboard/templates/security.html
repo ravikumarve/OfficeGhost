@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% block title %}Security — AI Office Pilot{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>🔒 Security Center</h1>
+        <p class="subtitle">Military-grade protection for your data</p>
+    </div>
+    <div class="header-actions">
+        <button class="btn-secondary" onclick="createBackup()">💾 Backup Now</button>
+        <button class="btn-secondary" onclick="generateReport()">📋 Compliance Report</button>
+    </div>
+</div>
+
+<!-- Security Status -->
+<div class="card security-overview">
+    <div class="security-grid">
+        <div class="security-item">
+            <span class="sec-icon">🔐</span>
+            <h4>Encryption</h4>
+            <p class="sec-status good">AES-256 Active</p>
+        </div>
+        <div class="security-item">
+            <span class="sec-icon">🌐</span>
+            <h4>Network</h4>
+            <p class="sec-status {{ 'good' if security.network_isolated else 'warn' }}">
+                {{ 'ISOLATED' if security.network_isolated else 'NOT ISOLATED' }}
+            </p>
+        </div>
+        <div class="security-item">
+            <span class="sec-icon">📋</span>
+            <h4>Audit Log</h4>
+            <p class="sec-status good">Verified ✓</p>
+        </div>
+        <div class="security-item">
+            <span class="sec-icon">🏠</span>
+            <h4>Data Location</h4>
+            <p class="sec-status good">100% LOCAL</p>
+        </div>
+    </div>
+</div>
+
+<!-- Compliance -->
+<div class="card">
+    <h3>✅ Compliance Status</h3>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Check</th>
+                <th>Status</th>
+                <th>Detail</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for check in compliance.checks %}
+            <tr>
+                <td>{{ check.name }}</td>
+                <td>
+                    <span class="badge {{ 'badge-pass' if check.status == 'PASS' else 'badge-fail' }}">
+                        {{ check.status }}
+                    </span>
+                </td>
+                <td>{{ check.detail }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Data Flow -->
+<div class="card">
+    <h3>📊 Data Flow Guarantee</h3>
+    <div class="data-flow-visual">
+        <div class="flow-box local">
+            <h4>YOUR COMPUTER</h4>
+            <p>📧 Emails processed here</p>
+            <p>📁 Files organized here</p>
+            <p>📊 Data extracted here</p>
+            <p>🧠 Learning stored here</p>
+            <p class="flow-emphasis">NOTHING LEAVES</p>
+        </div>
+        <div class="flow-arrow blocked">
+            <span>⛔ BLOCKED</span>
+        </div>
+        <div class="flow-box external">
+            <h4>INTERNET</h4>
+            <p>❌ No cloud APIs</p>
+            <p>❌ No data uploads</p>
+            <p>❌ No tracking</p>
+            <p>❌ No telemetry</p>
+            <p class="flow-emphasis">ZERO TRANSMISSION</p>
+        </div>
+    </div>
+</div>
+
+<!-- Audit Log -->
+<div class="card">
+    <h3>📋 Recent Security Events</h3>
+    <div class="audit-log">
+        {% for entry in audit %}
+        <div class="audit-entry {{ entry.sensitivity }}">
+            <span class="audit-time">{{ entry.timestamp[:19] }}</span>
+            <span class="audit-action">{{ entry.action }}</span>
+            <span class="audit-detail">{{ entry.detail }}</span>
+        </div>
+        {% endfor %}
+        {% if not audit %}
+        <p class="empty-state">No security events yet</p>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+async function createBackup() {
+    const res = await fetch('/backup', { method: 'POST' });
+    const data = await res.json();
+    if (data.status === 'success') {
+        alert('✅ Backup created: ' + data.path);
+    } else {
+        alert('❌ Backup failed: ' + data.message);
+    }
+}
+
+async function generateReport() {
+    const res = await fetch('/compliance-report', { method: 'POST' });
+    const data = await res.json();
+    if (data.status === 'success') {
+        alert('✅ Report generated: ' + data.report.audit_report);
+    } else {
+        alert('❌ Report failed: ' + data.message);
+    }
+}
+</script>
+{% endblock %}

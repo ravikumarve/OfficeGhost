@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}Settings — AI Office Pilot{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>⚙️ Settings</h1>
+    <p class="subtitle">Configure your AI Office Pilot</p>
+</div>
+
+<div class="card">
+    <h3>📧 Email Accounts</h3>
+    <p>Configure in <code>.env</code> file</p>
+    <pre class="code-block">
+EMAIL_1_ADDRESS=your.email@gmail.com
+EMAIL_1_PASSWORD=your_app_password
+EMAIL_1_IMAP_HOST=imap.gmail.com
+EMAIL_1_SMTP_HOST=smtp.gmail.com</pre>
+    <p class="note">💡 For Gmail, use an <a href="https://support.google.com/accounts/answer/185833" target="_blank">App Password</a></p>
+</div>
+
+<div class="card">
+    <h3>📁 Watched Folders</h3>
+    <p>Currently watching:</p>
+    <ul class="folder-list">
+        <li>~/Downloads</li>
+        <li>~/Desktop</li>
+    </ul>
+    <p class="note">Edit <code>WATCH_FOLDERS</code> in <code>.env</code></p>
+</div>
+
+<div class="card">
+    <h3>💾 Backups</h3>
+    <button class="btn-primary" onclick="createBackup()">Create Backup Now</button>
+    {% if backups %}
+    <table class="data-table" style="margin-top: 1rem;">
+        <thead>
+            <tr><th>Backup</th><th>Size</th><th>Created</th></tr>
+        </thead>
+        <tbody>
+            {% for b in backups %}
+            <tr>
+                <td>{{ b.name }}</td>
+                <td>{{ "%.1f"|format(b.size_mb) }} MB</td>
+                <td>{{ b.created[:19] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h3>📦 Data Management</h3>
+    <div class="button-group">
+        <button class="btn-secondary" onclick="exportData()">
+            📥 Export All My Data
+        </button>
+        <button class="btn-danger" onclick="deleteAllData()">
+            🗑️ Delete All My Data
+        </button>
+    </div>
+    <p class="note">⚠️ Deletion is permanent and cannot be undone</p>
+</div>
+
+<script>
+async function createBackup() {
+    const res = await fetch('/backup', { method: 'POST' });
+    const data = await res.json();
+    alert(data.status === 'success' ? '✅ Backup created!' : '❌ ' + data.message);
+    location.reload();
+}
+
+async function exportData() {
+    const res = await fetch('/export-data', { method: 'POST' });
+    const data = await res.json();
+    alert(data.status === 'success' ? '✅ Exported to: ' + data.path : '❌ ' + data.message);
+}
+
+function deleteAllData() {
+    const phrase = prompt('Type exactly: DELETE ALL MY DATA');
+    if (phrase === 'DELETE ALL MY DATA') {
+        if (confirm('This is PERMANENT. Are you absolutely sure?')) {
+            alert('Contact support to execute deletion.');
+        }
+    }
+}
+</script>
+{% endblock %}

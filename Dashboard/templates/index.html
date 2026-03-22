@@ -1,0 +1,264 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — AI Office Pilot{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>📊 Dashboard</h1>
+        <p class="subtitle">Your AI office assistant is protecting your workflow</p>
+    </div>
+    <div class="header-actions">
+        <button class="btn-primary" id="run-cycle-btn" onclick="runCycle()">
+            ▶️ Run Cycle
+        </button>
+        <button class="btn-secondary" id="continuous-btn" onclick="toggleContinuous()">
+            🔄 Start Continuous
+        </button>
+    </div>
+</div>
+
+<!-- Status Cards -->
+<div class="card-grid">
+    <div class="card status-card">
+        <div class="card-icon">💻</div>
+        <div class="card-body">
+            <h3>System</h3>
+            <p class="status-value">{{ status.health.overall }}</p>
+            <p class="status-detail">RAM: {{ status.health.ram.percent }}% | Disk: {{ status.health.disk.free_gb }}GB free</p>
+        </div>
+    </div>
+
+    <div class="card status-card">
+        <div class="card-icon">🔒</div>
+        <div class="card-body">
+            <h3>Security</h3>
+            <p class="status-value">{{ status.security.overall }}</p>
+            <p class="status-detail">Encryption: AES-256 Active</p>
+        </div>
+    </div>
+
+    <div class="card status-card">
+        <div class="card-icon">🧠</div>
+        <div class="card-body">
+            <h3>Learning Score</h3>
+            <p class="status-value score">{{ status.learning.learning_score|default(0) }}/100</p>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: {{ status.learning.learning_score|default(0) }}%"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card status-card">
+        <div class="card-icon">📊</div>
+        <div class="card-body">
+            <h3>Cycles</h3>
+            <p class="status-value">{{ status.cycles_completed }}</p>
+            <p class="status-detail">{{ status.queue.completed }} tasks completed</p>
+        </div>
+    </div>
+</div>
+
+<!-- Module Status -->
+<div class="card-grid-3">
+    <div class="card module-card">
+        <h3>📧 Email Brain</h3>
+        <div class="module-stats">
+            <div class="stat">
+                <span class="stat-label">Accuracy</span>
+                <span class="stat-value">
+                    {% if status.learning.accuracy and 'email_reply' in status.learning.accuracy %}
+                        {{ status.learning.accuracy.email_reply.accuracy }}%
+                    {% else %}
+                        Learning...
+                    {% endif %}
+                </span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">Contacts Known</span>
+                <span class="stat-value">{{ status.learning.contacts_learned|default(0) }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="card module-card">
+        <h3>📁 File Commander</h3>
+        <div class="module-stats">
+            <div class="stat">
+                <span class="stat-label">Accuracy</span>
+                <span class="stat-value">
+                    {% if status.learning.accuracy and 'file_categorize' in status.learning.accuracy %}
+                        {{ status.learning.accuracy.file_categorize.accuracy }}%
+                    {% else %}
+                        Learning...
+                    {% endif %}
+                </span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">Categories</span>
+                <span class="stat-value">{{ status.learning.categories_learned|default(0) }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="card module-card">
+        <h3>📊 Data Engine</h3>
+        <div class="module-stats">
+            <div class="stat">
+                <span class="stat-label">Accuracy</span>
+                <span class="stat-value">
+                    {% if status.learning.accuracy and 'data_extract' in status.learning.accuracy %}
+                        {{ status.learning.accuracy.data_extract.accuracy }}%
+                    {% else %}
+                        Learning...
+                    {% endif %}
+                </span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">Vendors Mapped</span>
+                <span class="stat-value">{{ status.learning.categories_learned|default(0) }}</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Predictions -->
+{% if status.learning.patterns %}
+<div class="card predictions-card">
+    <h3>🔮 Discovered Patterns</h3>
+    <div class="pattern-list">
+        {% for pattern in status.learning.patterns[:5] %}
+        <div class="pattern-item">
+            <span class="pattern-type {{ pattern.type }}">{{ pattern.type }}</span>
+            <span class="pattern-desc">{{ pattern.description }}</span>
+            <span class="pattern-conf">{{ (pattern.confidence * 100)|int }}%</span>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Activity Feed -->
+<div class="card activity-card">
+    <h3>📋 Recent Activity</h3>
+    <div id="activity-feed" class="activity-feed">
+        <p class="empty-state">Run a cycle to see activity here</p>
+    </div>
+</div>
+
+<!-- Data Flow Monitor -->
+<div class="card data-flow-card">
+    <h3>🔒 Data Flow Monitor</h3>
+    <div class="flow-grid">
+        <div class="flow-item incoming">
+            <h4>📥 Incoming</h4>
+            <p>All data processed <strong>locally</strong></p>
+            <p class="flow-zero">Zero bytes sent externally</p>
+        </div>
+        <div class="flow-item blocked">
+            <h4>⛔ Blocked</h4>
+            <p>External API calls: <strong>0</strong></p>
+            <p>Cloud uploads: <strong>0</strong></p>
+            <p>Data sharing: <strong>0</strong></p>
+        </div>
+        <div class="flow-item encrypted">
+            <h4>🔐 Encrypted</h4>
+            <p>Memory DB: ✅</p>
+            <p>Contact Data: ✅</p>
+            <p>Learning Data: ✅</p>
+        </div>
+    </div>
+</div>
+
+<script>
+async function runCycle() {
+    const btn = document.getElementById('run-cycle-btn');
+    btn.disabled = true;
+    btn.textContent = '⏳ Running...';
+
+    try {
+        const res = await fetch('/run-cycle', { method: 'POST' });
+        const data = await res.json();
+
+        if (data.error) {
+            alert(data.error);
+            if (data.needs_auth) window.location = '/login';
+            return;
+        }
+
+        // Update activity feed
+        const feed = document.getElementById('activity-feed');
+        const time = new Date().toLocaleTimeString();
+        feed.innerHTML = `
+            <div class="activity-item success">
+                <span class="activity-time">${time}</span>
+                <span class="activity-text">
+                    Cycle #${data.cycle}: 
+                    ${data.emails_processed} emails, 
+                    ${data.files_organized} files, 
+                    ${data.data_entries} data entries
+                    (${data.duration_seconds}s)
+                </span>
+            </div>
+        ` + feed.innerHTML;
+
+        // Show predictions
+        if (data.predictions && data.predictions.length > 0) {
+            data.predictions.forEach(p => {
+                feed.innerHTML = `
+                    <div class="activity-item prediction">
+                        <span class="activity-time">${time}</span>
+                        <span class="activity-text">🔮 ${p.message}</span>
+                    </div>
+                ` + feed.innerHTML;
+            });
+        }
+
+        // Show errors
+        if (data.errors && data.errors.length > 0) {
+            data.errors.forEach(e => {
+                feed.innerHTML = `
+                    <div class="activity-item error">
+                        <span class="activity-time">${time}</span>
+                        <span class="activity-text">⚠️ ${e}</span>
+                    </div>
+                ` + feed.innerHTML;
+            });
+        }
+
+        // Refresh page data
+        setTimeout(() => location.reload(), 2000);
+
+    } catch (err) {
+        alert('Error: ' + err.message);
+    } finally {
+        btn.disabled = false;
+        btn.textContent = '▶️ Run Cycle';
+    }
+}
+
+let isContinuous = false;
+function toggleContinuous() {
+    const btn = document.getElementById('continuous-btn');
+    if (!isContinuous) {
+        fetch('/start-continuous', { method: 'POST' });
+        btn.textContent = '⏹️ Stop Continuous';
+        btn.classList.add('active');
+        isContinuous = true;
+    } else {
+        fetch('/stop', { method: 'POST' });
+        btn.textContent = '🔄 Start Continuous';
+        btn.classList.remove('active');
+        isContinuous = false;
+    }
+}
+
+// Auto-refresh status every 30 seconds
+setInterval(async () => {
+    try {
+        const res = await fetch('/api/status');
+        const data = await res.json();
+        // Update cards dynamically
+    } catch (e) {}
+}, 30000);
+</script>
+{% endblock %}

@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+{% block title %}Learning — AI Office Pilot{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>🧠 Learning Progress</h1>
+        <p class="subtitle">Watch your AI get smarter every day</p>
+    </div>
+</div>
+
+<!-- Learning Score -->
+<div class="card learning-score-card">
+    <div class="score-display">
+        <div class="score-circle">
+            <svg viewBox="0 0 120 120">
+                <circle cx="60" cy="60" r="54" fill="none" stroke="#1e293b" stroke-width="8"/>
+                <circle cx="60" cy="60" r="54" fill="none" stroke="#22c55e"
+                    stroke-width="8" stroke-linecap="round"
+                    stroke-dasharray="{{ (report.learning_score|default(0)) * 3.39 }} 339"
+                    transform="rotate(-90 60 60)"/>
+            </svg>
+            <span class="score-number">{{ report.learning_score|default(0) }}</span>
+        </div>
+        <div class="score-label">
+            <h2>Learning Score</h2>
+            <p>Out of 100</p>
+        </div>
+    </div>
+
+    <div class="score-timeline">
+        <h4>Score Projection</h4>
+        <div class="timeline">
+            <div class="timeline-point" style="left: 5%">
+                <span class="point-label">Day 1</span>
+                <span class="point-value">12</span>
+            </div>
+            <div class="timeline-point" style="left: 15%">
+                <span class="point-label">Week 1</span>
+                <span class="point-value">34</span>
+            </div>
+            <div class="timeline-point" style="left: 35%">
+                <span class="point-label">Month 1</span>
+                <span class="point-value">71</span>
+            </div>
+            <div class="timeline-point current" style="left: {{ report.learning_score|default(0) }}%">
+                <span class="point-label">Now</span>
+                <span class="point-value">{{ report.learning_score|default(0) }}</span>
+            </div>
+            <div class="timeline-point" style="left: 93%">
+                <span class="point-label">Month 6</span>
+                <span class="point-value">99</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Module Accuracy -->
+<div class="card-grid-3">
+    <div class="card accuracy-card">
+        <h3>📧 Email Accuracy</h3>
+        <div class="accuracy-display">
+            {% if report.accuracy and 'email_reply' in report.accuracy %}
+                {% set acc = report.accuracy.email_reply %}
+                <div class="accuracy-circle" style="--percent: {{ acc.accuracy }}">
+                    <span>{{ acc.accuracy }}%</span>
+                </div>
+                <p>{{ acc.correct }}/{{ acc.total }} correct</p>
+            {% else %}
+                <div class="accuracy-circle" style="--percent: 0">
+                    <span>—</span>
+                </div>
+                <p>No data yet. Process some emails!</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card accuracy-card">
+        <h3>📁 File Accuracy</h3>
+        <div class="accuracy-display">
+            {% if report.accuracy and 'file_categorize' in report.accuracy %}
+                {% set acc = report.accuracy.file_categorize %}
+                <div class="accuracy-circle" style="--percent: {{ acc.accuracy }}">
+                    <span>{{ acc.accuracy }}%</span>
+                </div>
+                <p>{{ acc.correct }}/{{ acc.total }} correct</p>
+            {% else %}
+                <div class="accuracy-circle" style="--percent: 0">
+                    <span>—</span>
+                </div>
+                <p>No data yet. Organize some files!</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card accuracy-card">
+        <h3>📊 Data Accuracy</h3>
+        <div class="accuracy-display">
+            {% if report.accuracy and 'data_extract' in report.accuracy %}
+                {% set acc = report.accuracy.data_extract %}
+                <div class="accuracy-circle" style="--percent: {{ acc.accuracy }}">
+                    <span>{{ acc.accuracy }}%</span>
+                </div>
+                <p>{{ acc.correct }}/{{ acc.total }} correct</p>
+            {% else %}
+                <div class="accuracy-circle" style="--percent: 0">
+                    <span>—</span>
+                </div>
+                <p>No data yet. Process some invoices!</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Learning Stats -->
+<div class="card-grid">
+    <div class="card stat-card">
+        <h4>📝 Total Feedback</h4>
+        <p class="big-number">{{ report.total_feedback|default(0) }}</p>
+    </div>
+    <div class="card stat-card">
+        <h4>🧬 Style Traits</h4>
+        <p class="big-number">{{ report.style_traits|default(0) }}</p>
+    </div>
+    <div class="card stat-card">
+        <h4>🔄 Patterns Found</h4>
+        <p class="big-number">{{ report.patterns_found|default(0) }}</p>
+    </div>
+    <div class="card stat-card">
+        <h4>👤 Contacts Learned</h4>
+        <p class="big-number">{{ report.contacts_learned|default(0) }}</p>
+    </div>
+</div>
+
+<!-- Discovered Patterns -->
+{% if report.patterns %}
+<div class="card">
+    <h3>🔮 Discovered Patterns</h3>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Type</th>
+                <th>Pattern</th>
+                <th>Confidence</th>
+                <th>Observed</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in report.patterns %}
+            <tr>
+                <td><span class="badge badge-{{ p.type }}">{{ p.type }}</span></td>
+                <td>{{ p.description }}</td>
+                <td>
+                    <div class="mini-bar">
+                        <div class="mini-fill" style="width: {{ (p.confidence * 100)|int }}%"></div>
+                    </div>
+                    {{ (p.confidence * 100)|int }}%
+                </td>
+                <td>{{ p.observed }}x</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+{% endblock %}

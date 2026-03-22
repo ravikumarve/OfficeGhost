@@ -1,0 +1,49 @@
+# AI Office Pilot - Git Ignore
+
+# Environment
+.env
+*.env
+
+# Data (NEVER commit user data)
+data/
+*.db
+*.db.enc
+*.enc
+
+# Security keys (NEVER commit)
+.keystore
+.salt
+.pepper
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environment
+venv/
+.venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+
+# Backups
+*.bak
+backups/

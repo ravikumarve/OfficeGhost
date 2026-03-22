@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+  # AI Office Pilot
+  pilot:
+    build: .
+    container_name: ai-office-pilot
+    restart: unless-stopped
+    ports:
+      - "5000:5000"  # Dashboard
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=UTC
+      # Ollama (use 'host.docker.internal' on Mac/Windows to reach host Ollama)
+      - OLLAMA_HOST=http://host.docker.internal:11434
+      - OLLAMA_MODEL=phi3:mini
+      # Email (configure your accounts)
+      - EMAIL_1_ADDRESS=${EMAIL_1_ADDRESS}
+      - EMAIL_1_PASSWORD=${EMAIL_1_PASSWORD}
+      - EMAIL_1_IMAP_HOST=${EMAIL_1_IMAP_HOST:-imap.gmail.com}
+      - EMAIL_1_SMTP_HOST=${EMAIL_1_SMTP_HOST:-smtp.gmail.com}
+      # Files
+      - WATCH_FOLDERS=/watch/Downloads,/watch/Desktop
+      - ORGANIZED_ROOT=/data/Organized
+      # Dashboard
+      - DASHBOARD_HOST=0.0.0.0
+      - DASHBOARD_PORT=5000
+      # Security
+      - AUTO_LOCK_MINUTES=30
+      - ENABLE_DESKTOP_NOTIFICATIONS=false
+    volumes:
+      # Persist data
+      - pilot-data:/app/data
+      # Watch folders (create these on host)
+      - ~/Downloads:/watch/Downloads:ro
+      - ~/Desktop:/watch/Desktop:ro
+    networks:
+      - pilot-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Ollama (optional - if not using host Ollama)
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    networks:
+      - pilot-network
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+networks:
+  pilot-network:
+    driver: bridge
+
+volumes:
+  pilot-data:
+    driver: local
+  ollama-data:
+    driver: local

@@ -1,0 +1,21 @@
+line-length = 100
+
+[lint]
+select = [
+    "E",     # pycodestyle errors
+    "W",     # pycodestyle warnings
+    "F",     # pyflakes
+    "I",     # isort
+    "C",     # flake8-comprehensions
+    "B",     # flake8-bugbear
+    "UP",    # pyupgrade
+    "SIM",   # flake8-simplify
+]
+ignore = [
+    "E501",   # line length handled by formatter
+    "B008",   # function calls in defaults
+    "C901",   # complexity
+]
+
+[lint.isort]
+known-first-party = ["core", "security", "learning", "modules", "notifications"]
