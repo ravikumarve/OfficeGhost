@@ -295,8 +295,10 @@ def security():
     sec_status = p.threats.get_status()
     compliance = p.compliance.check_compliance()
     audit_entries = p.audit.get_recent(20)
+    encryption_status = p.crypto.get_status()
     return render_template(
-        "security.html", security=sec_status, compliance=compliance, audit=audit_entries
+        "security.html", security=sec_status, compliance=compliance, 
+        audit=audit_entries, encryption=encryption_status
     )
 
 

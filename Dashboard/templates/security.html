@@ -19,7 +19,11 @@
         <div class="security-item">
             <span class="sec-icon">🔐</span>
             <h4>Encryption</h4>
-            <p class="sec-status good">AES-256 Active</p>
+            {% if encryption.setup and encryption.unlocked %}
+            <p class="sec-status good">🟢 FULLY SECURE</p>
+            {% else %}
+            <p class="sec-status warn">🟡 ENCRYPTION DISABLED</p>
+            {% endif %}
         </div>
         <div class="security-item">
             <span class="sec-icon">🌐</span>

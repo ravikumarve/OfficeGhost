@@ -33,7 +33,11 @@
         <div class="card-body">
             <h3>Security</h3>
             <p class="status-value">{{ status.security.overall }}</p>
-            <p class="status-detail">Encryption: AES-256 Active</p>
+            {% if status.encryption.setup and status.encryption.unlocked %}
+            <p class="status-detail">🟢 AES-256 Active - Fully Secure</p>
+            {% else %}
+            <p class="status-detail">🟡 Encryption Disabled</p>
+            {% endif %}
         </div>
     </div>
 
