@@ -392,7 +392,93 @@ def compliance_report():
 def settings():
     p = get_pilot()
     backups = p.backup.list_backups()
-    return render_template("settings.html", backups=backups)
+    
+    # Get available models from Ollama
+    available_models = []
+    current_model = Config.OLLAMA_MODEL
+    try:
+        import requests
+        r = requests.get(f"{Config.OLLAMA_HOST}/api/tags", timeout=5)
+        if r.status_code == 200:
+            data = r.json()
+            available_models = [m.get("name", "") for m in data.get("models", [])]
+    except Exception:
+        pass
+    
+    return render_template(
+        "settings.html", 
+        backups=backups,
+        available_models=available_models,
+        current_model=current_model
+    )
+
+
+@app.route("/api/models", methods=["GET"])
+@login_required
+def api_get_models():
+    """Get available Ollama models"""
+    import requests
+    try:
+        r = requests.get(f"{Config.OLLAMA_HOST}/api/tags", timeout=10)
+        if r.status_code == 200:
+            data = r.json()
+            models = [{"name": m.get("name", ""), "size": m.get("size", 0)} for m in data.get("models", [])]
+            return jsonify({"status": "success", "models": models, "current": Config.OLLAMA_MODEL})
+        return jsonify({"status": "error", "message": "Failed to fetch models"})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)})
+
+
+@app.route("/api/models/pull", methods=["POST"])
+@login_required
+def api_pull_model():
+    """Pull a new Ollama model"""
+    import requests
+    data = request.json
+    model_name = data.get("model", "").strip()
+    
+    if not model_name:
+        return jsonify({"status": "error", "message": "Model name required"})
+    
+    try:
+        r = requests.post(
+            f"{Config.OLLAMA_HOST}/api/pull",
+            json={"name": model_name},
+            timeout=300
+        )
+        if r.status_code == 200:
+            return jsonify({"status": "success", "message": f"Model '{model_name}' pulled successfully"})
+        return jsonify({"status": "error", "message": "Failed to pull model"})
+    except requests.exceptions.Timeout:
+        return jsonify({"status": "error", "message": "Model pull timed out"})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)})
+
+
+@app.route("/api/models/set", methods=["POST"])
+@login_required
+def api_set_model():
+    """Set the active Ollama model"""
+    data = request.json
+    model_name = data.get("model", "").strip()
+    
+    if not model_name:
+        return jsonify({"status": "error", "message": "Model name required"})
+    
+    # Update .env file
+    env_path = Config.BASE_DIR / ".env"
+    env_content = env_path.read_text() if env_path.exists() else ""
+    
+    # Update or add OLLAMA_MODEL
+    if "OLLAMA_MODEL=" in env_content:
+        import re
+        env_content = re.sub(r"OLLAMA_MODEL=.*", f"OLLAMA_MODEL={model_name}", env_content)
+    else:
+        env_content += f"\nOLLAMA_MODEL={model_name}\n"
+    
+    env_path.write_text(env_content)
+    
+    return jsonify({"status": "success", "message": f"Model set to '{model_name}'"})
 
 
 # ═══════════════════════════════════════

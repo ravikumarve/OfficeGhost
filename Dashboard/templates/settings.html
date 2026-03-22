@@ -8,6 +8,53 @@
 </div>
 
 <div class="card">
+    <h3>🤖 AI Model</h3>
+    <p>Select the Ollama model to use for AI processing:</p>
+    
+    <div class="form-group">
+        <label for="model-select">Available Models:</label>
+        <select id="model-select" class="form-select">
+            <option value="">-- Select a model --</option>
+            {% for model in available_models %}
+            <option value="{{ model }}" {% if model == current_model %}selected{% endif %}>
+                {{ model }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+    
+    <div class="current-model">
+        <span class="model-label">Current Model:</span>
+        <span class="model-value">
+            {% if current_model %}
+            <span class="green-dot">●</span> {{ current_model }}
+            {% else %}
+            <span class="no-model">Not set</span>
+            {% endif %}
+        </span>
+    </div>
+    
+    <button class="btn-primary" onclick="saveModel()" style="margin-top: 1rem;">
+        💾 Save Selection
+    </button>
+    
+    <hr style="margin: 1.5rem 0; border-color: var(--border);">
+    
+    <h4>Pull New Model</h4>
+    <p>Download a new model from Ollama:</p>
+    
+    <div class="form-group">
+        <input type="text" id="pull-model-name" class="form-input" 
+               placeholder="e.g., llama3.2:3b, phi3:mini, mistral">
+    </div>
+    <button class="btn-secondary" onclick="pullModel()">
+        ⬇️ Pull Model
+    </button>
+    
+    <div id="model-status" class="status-message" style="margin-top: 1rem;"></div>
+</div>
+
+<div class="card">
     <h3>📧 Email Accounts</h3>
     <p>Configure in <code>.env</code> file</p>
     <pre class="code-block">
@@ -63,6 +110,60 @@ EMAIL_1_SMTP_HOST=smtp.gmail.com</pre>
 </div>
 
 <script>
+async function saveModel() {
+    const select = document.getElementById('model-select');
+    const model = select.value;
+    
+    if (!model) {
+        alert('Please select a model');
+        return;
+    }
+    
+    const res = await fetch('/api/models/set', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({model: model})
+    });
+    const data = await res.json();
+    
+    if (data.status === 'success') {
+        alert('✅ Model saved! Restart required for changes to take effect.');
+    } else {
+        alert('❌ ' + data.message);
+    }
+}
+
+async function pullModel() {
+    const input = document.getElementById('pull-model-name');
+    const model = input.value.trim();
+    const status = document.getElementById('model-status');
+    
+    if (!model) {
+        alert('Please enter a model name');
+        return;
+    }
+    
+    status.innerHTML = '<span class="loading">⏳ Pulling model... This may take several minutes.</span>';
+    
+    try {
+        const res = await fetch('/api/models/pull', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({model: model})
+        });
+        const data = await res.json();
+        
+        if (data.status === 'success') {
+            status.innerHTML = '<span class="success">✅ ' + data.message + '</span>';
+            setTimeout(() => location.reload(), 2000);
+        } else {
+            status.innerHTML = '<span class="error">❌ ' + data.message + '</span>';
+        }
+    } catch (err) {
+        status.innerHTML = '<span class="error">❌ Error: ' + err.message + '</span>';
+    }
+}
+
 async function createBackup() {
     const res = await fetch('/backup', { method: 'POST' });
     const data = await res.json();
