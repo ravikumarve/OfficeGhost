@@ -21,8 +21,8 @@ GhostOffice can be deployed in multiple ways:
 
 ```bash
 # Clone repository
-git clone https://github.com/yourusername/ai-office-pilot.git
-cd ai-office-pilot
+git clone https://github.com/ravikumarve/OfficeGhost.git
+cd OfficeGhost
 
 # Create virtual environment
 python3 -m venv venv
