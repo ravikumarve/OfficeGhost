@@ -1,8 +1,8 @@
-# AI Office Pilot - Deployment Guide
+# GhostOffice - Deployment Guide
 
 ## Overview
 
-AI Office Pilot can be deployed in multiple ways:
+GhostOffice can be deployed in multiple ways:
 1. **Local Development** - Direct Python execution
 2. **Docker Container** - Isolated containerized deployment
 3. **Production Server** - Systemd service with reverse proxy
@@ -97,7 +97,7 @@ docker-compose down
 1. Create service file `/etc/systemd/system/ai-office-pilot.service`:
    ```ini
    [Unit]
-   Description=AI Office Pilot
+   Description=GhostOffice
    After=network.target
 
    [Service]

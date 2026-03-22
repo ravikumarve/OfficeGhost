@@ -1,8 +1,8 @@
-# Architecture - AI Office Pilot v3.0
+# Architecture - GhostOffice v3.0
 
 ## System Overview
 
-AI Office Pilot is a local AI assistant that automates email, file, and data entry tasks while learning user preferences over time.
+GhostOffice is a local AI assistant that automates email, file, and data entry tasks while learning user preferences over time.
 
 ## Design Principles
 

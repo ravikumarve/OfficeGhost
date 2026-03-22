@@ -1,4 +1,4 @@
-# 🤖 AI Office Pilot
+# 🤖 GhostOffice
 
 ```
 ╔══════════════════════════════════════════════════════════════════════════════╗
@@ -41,7 +41,7 @@
 
 ## 📋 Table of Contents
 
-- [🚀 About AI Office Pilot](#about)
+- [🚀 About GhostOffice](#about)
 - [✨ Why Choose Us](#why-choose-us)
 - [📚 Version History](#version-history)
 - [🏗️ Architecture](#architecture)
@@ -56,9 +56,9 @@
 
 ---
 
-## 🚀 About AI Office Pilot
+## 🚀 About GhostOffice
 
-AI Office Pilot is a **privacy-first, fully local AI assistant** that handles your email, files, and data entry automatically. Unlike cloud-based solutions, all processing happens on your machine using Ollama - ensuring your data never leaves your device.
+GhostOffice is a **privacy-first, fully local AI assistant** that handles your email, files, and data entry automatically. Unlike cloud-based solutions, all processing happens on your machine using Ollama - ensuring your data never leaves your device.
 
 ### Key Features
 
@@ -220,7 +220,7 @@ Phase-by-phase features added in v3.0:
 ## 🏗️ Architecture
 
 ```mermaid
-graph TB
+graph TD
     subgraph Core["Core Layer"]
         PILOT[AIOfficePilot]
         BRAIN[OllamaBrain]
@@ -567,5 +567,5 @@ MIT License - See [LICENSE](LICENSE) file for details.
 ---
 
 <p align="center">
-  © 2024-2026 AI Office Pilot. All rights reserved.
+  © 2024-2026 GhostOffice. All rights reserved.
 </p>

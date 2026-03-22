@@ -1,4 +1,4 @@
-# AI Office Pilot - API Documentation
+# GhostOffice - API Documentation
 
 ## Base URL
 
