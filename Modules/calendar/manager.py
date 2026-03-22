@@ -158,9 +158,9 @@ class CalendarManager:
 
     def _parse_attendee(self, value: str) -> str:
         """Parse attendee email"""
-        if "mailto:" in value:
-            return value.replace("mailto:", "")
-        return value
+            if "mailto:" in value:
+                return value.replace("mailto:", "")
+            return value
 
     def _create_event(self, data: dict) -> Optional[CalendarEvent]:
         """Create CalendarEvent from parsed data"""
@@ -178,6 +178,111 @@ class CalendarManager:
             attendees=data.get("attendees", []),
             rrule=data.get("rrule")
         )
+
+    def process_meeting_request(
+        self,
+        email_body: str,
+        sender_email: str,
+        sender_name: str
+    ) -> Optional[dict]:
+        """
+        Process meeting request from email and generate response options
+        
+        Args:
+            email_body: Email body content
+            sender_email: Sender's email address
+            sender_name: Sender's name
+            
+        Returns:
+            Dict with meeting details and response options
+        """
+        meeting = self.parse_email_meeting(email_body)
+        
+        if not meeting:
+            return None
+        
+        # Check for conflicts
+        has_conflict = False
+        if meeting.start and meeting.end:
+            has_conflict = self.is_meeting_conflict(meeting.start, meeting.end)
+        
+        # Find available time slots if there's a conflict
+        free_slots = []
+        if has_conflict and meeting.start:
+            free_slots = self.find_free_slots(
+                duration_minutes=int(
+                    (meeting.end - meeting.start).total_seconds() / 60
+                ) if meeting.end and meeting.start else 30,
+                start_date=meeting.start,
+                days=3
+            )[:3]
+        
+        return {
+            "meeting": {
+                "summary": meeting.summary,
+                "start": meeting.start.isoformat() if meeting.start else None,
+                "end": meeting.end.isoformat() if meeting.end else None,
+                "location": meeting.location,
+                "organizer": meeting.organizer,
+                "attendees": meeting.attendees
+            },
+            "has_conflict": has_conflict,
+            "suggested_times": [
+                {"start": s[0].isoformat(), "end": s[1].isoformat()}
+                for s in free_slots
+            ],
+            "response_options": self._generate_response_options(has_conflict)
+        }
+
+    def _generate_response_options(self, has_conflict: bool) -> list[dict]:
+        """Generate meeting response options"""
+        options = [
+            {"action": "accept", "label": "Accept", "template": "Accept"},
+            {"action": "tentative", "label": "Tentative", "template": "Tentative"},
+            {"action": "decline", "label": "Decline", "template": "Decline"},
+        ]
+        
+        if has_conflict:
+            options.append({
+                "action": "propose_new_time",
+                "label": "Propose New Time",
+                "template": "Counter Proposal"
+            })
+        
+        return options
+
+    def respond_to_meeting(
+        self,
+        meeting: CalendarEvent,
+        response: str,
+        custom_message: Optional[str] = None
+    ) -> str:
+        """
+        Generate meeting response email
+        
+        Args:
+            meeting: The meeting event
+            response: Response type (accept, tentative, decline, propose_new_time)
+            custom_message: Optional custom message
+            
+        Returns:
+            Response email content
+        """
+        response_templates = {
+            "accept": "Thank you for the invitation. I am pleased to confirm my attendance.",
+            "tentative": "Thank you for the invitation. I may be able to attend, but need to confirm.",
+            "decline": "Thank you for the invitation. Unfortunately, I am unable to attend.",
+            "propose_new_time": "Thank you for the invitation. I have a conflict at that time. Would the following times work for you?"
+        }
+        
+        base_response = response_templates.get(response, response_templates["tentative"])
+        
+        if custom_message:
+            response_text = f"{base_response}\n\n{custom_message}"
+        else:
+            response_text = base_response
+        
+        return response_text
 
     def get_upcoming(self, hours: int = 24) -> list[CalendarEvent]:
         """Get upcoming events"""
