@@ -1,14 +1,17 @@
 """
-AI Office Pilot - Main Orchestrator
+GhostOffice - Main Orchestrator
 The brain that connects everything
 """
 
 import time
 import json
+import logging
 from datetime import datetime
 from typing import Optional
 
 from core.config import Config
+
+logger = logging.getLogger(__name__)
 from core.ollama_brain import OllamaBrain
 from core.queue_manager import QueueManager, Priority
 from core.health_monitor import HealthMonitor
@@ -585,7 +588,8 @@ class AIOfficePilot:
         self.is_running = True
         interval = Config.CYCLE_INTERVAL_MINUTES
 
-        print(f"\n🤖 AI Office Pilot running continuously")
+        logger.info(f"Starting continuous mode - cycle every {interval} minutes")
+        print(f"\n🤖 GhostOffice running continuously")
         print(f"   Cycle every {interval} minutes")
         print(f"   Press Ctrl+C to stop\n")
 
@@ -594,14 +598,23 @@ class AIOfficePilot:
                 # Health check
                 health = self.health.check_all()
                 if health["ram"]["warning"]:
+                    logger.warning(f"RAM usage high: {health['ram']['percent']}%")
                     print(f"   ⚠️ RAM usage high: {health['ram']['percent']}%")
 
                 # Run cycle
                 result = self.run_cycle()
 
                 if result.get("needs_auth"):
+                    logger.error(f"Authentication required: {result['error']}")
                     print(f"   🔒 {result['error']}")
                     break
+
+                # Log cycle summary
+                logger.info(
+                    f"Cycle #{result['cycle']}: {result['emails_processed']} emails, "
+                    f"{result['files_organized']} files, {result['data_entries']} data "
+                    f"({result['duration_seconds']}s)"
+                )
 
                 # Print summary
                 print(
@@ -614,18 +627,22 @@ class AIOfficePilot:
 
                 if result["predictions"]:
                     for p in result["predictions"][:2]:
+                        logger.debug(f"Prediction: {p['message']}")
                         print(f"   🔮 {p['message']}")
 
                 if result["errors"]:
                     for e in result["errors"]:
+                        logger.warning(f"Cycle error: {e}")
                         print(f"   ⚠️ {e}")
 
                 # Sleep until next cycle
                 time.sleep(interval * 60)
 
             except KeyboardInterrupt:
+                logger.info("Continuous mode stopped by user")
                 break
             except Exception as e:
+                logger.error(f"Continuous mode error: {e}")
                 print(f"   ❌ Error: {e}")
                 time.sleep(30)  # Wait before retry
 
@@ -662,7 +679,8 @@ class AIOfficePilot:
         # Lock encryption
         self.auth.logout()
 
-        print("\n🔒 AI Office Pilot shut down securely")
+        logger.info("GhostOffice shutdown complete")
+        print("\n🔒 GhostOffice shut down securely")
 
     # ═══════════════════════════════════════
     # STATUS & REPORTS
