@@ -22,6 +22,11 @@
                     <span class="icon">📊</span> Dashboard
                 </a>
             </li>
+            <li class="{{ 'active' if request.endpoint == 'email_brain' }}">
+                <a href="{{ url_for('email_brain') }}">
+                    <span class="icon">📧</span> Email Brain
+                </a>
+            </li>
             <li class="{{ 'active' if request.endpoint == 'learning' }}">
                 <a href="{{ url_for('learning') }}">
                     <span class="icon">🧠</span> Learning
@@ -49,6 +54,31 @@
             </a>
         </div>
     </nav>
+
+    <!-- Notification Bell -->
+    <div class="notification-bell" id="notificationBell">
+        <button class="bell-btn" onclick="toggleNotifications()">
+            🔔
+            <span class="bell-badge" id="bellBadge" style="display: none;">0</span>
+        </button>
+        <div class="notification-dropdown" id="notificationDropdown">
+            <div class="dropdown-header">
+                <span>Notifications</span>
+                <button class="mark-read-btn" onclick="markAllRead(event)">Mark all read</button>
+            </div>
+            <div class="notification-list" id="notificationList">
+                <div class="notification-loading">Loading...</div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Demo Mode Banner -->
+    {% if demo_mode %}
+    <div class="demo-banner">
+        <span class="demo-icon">👻</span>
+        <span class="demo-text"><strong>DEMO MODE</strong> — Sample data shown. Configure your .env to enable live processing.</span>
+    </div>
     {% endif %}
 
     <main class="{% if session.authenticated %}with-sidebar{% endif %}">
@@ -69,6 +99,107 @@
     </main>
 
     <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script>
+    let notificationDropdownOpen = false;
+
+    async function loadNotifications() {
+        try {
+            const res = await fetch('/api/notifications');
+            const data = await res.json();
+            
+            const badge = document.getElementById('bellBadge');
+            const list = document.getElementById('notificationList');
+            
+            if (data.unread_count > 0) {
+                badge.textContent = data.unread_count > 99 ? '99+' : data.unread_count;
+                badge.style.display = 'flex';
+            } else {
+                badge.style.display = 'none';
+            }
+            
+            if (data.notifications && data.notifications.length > 0) {
+                list.innerHTML = data.notifications.map(n => `
+                    <div class="notification-item ${n.read ? 'read' : 'unread'}">
+                        <div class="notif-icon">${getCategoryIcon(n.category)}</div>
+                        <div class="notif-content">
+                            <div class="notif-title">${escapeHtml(n.title)}</div>
+                            <div class="notif-message">${escapeHtml(n.message)}</div>
+                            <div class="notif-time">${formatTime(n.created_at)}</div>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                list.innerHTML = '<div class="notification-empty">No notifications yet</div>';
+            }
+        } catch (e) {
+            console.error('Failed to load notifications:', e);
+        }
+    }
+
+    function getCategoryIcon(category) {
+        const icons = {
+            error: '❌',
+            success: '✅',
+            security: '🔒',
+            task: '⚡',
+            warning: '⚠️'
+        };
+        return icons[category] || '📢';
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function formatTime(isoString) {
+        const date = new Date(isoString);
+        const now = new Date();
+        const diff = (now - date) / 1000;
+        
+        if (diff < 60) return 'Just now';
+        if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+        if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+        return date.toLocaleDateString();
+    }
+
+    async function toggleNotifications() {
+        event.stopPropagation();
+        const dropdown = document.getElementById('notificationDropdown');
+        notificationDropdownOpen = !notificationDropdownOpen;
+        
+        if (notificationDropdownOpen) {
+            dropdown.style.display = 'block';
+            await loadNotifications();
+        } else {
+            dropdown.style.display = 'none';
+        }
+    }
+
+    async function markAllRead(event) {
+        event.stopPropagation();
+        try {
+            await fetch('/api/notifications/mark-read', { method: 'POST' });
+            document.getElementById('bellBadge').style.display = 'none';
+            await loadNotifications();
+        } catch (e) {
+            console.error('Failed to mark as read:', e);
+        }
+    }
+
+    document.addEventListener('click', function(e) {
+        const bell = document.getElementById('notificationBell');
+        const dropdown = document.getElementById('notificationDropdown');
+        if (notificationDropdownOpen && bell && !bell.contains(e.target)) {
+            dropdown.style.display = 'none';
+            notificationDropdownOpen = false;
+        }
+    });
+
+    loadNotifications();
+    setInterval(loadNotifications, 30000);
+    </script>
     {% block scripts %}{% endblock %}
 </body>
 </html>

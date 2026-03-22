@@ -3,8 +3,10 @@
 
 {% block content %}
 <div class="page-header">
-    <h1>⚙️ Settings</h1>
-    <p class="subtitle">Configure your GhostOffice</p>
+    <div>
+        <h1>Settings</h1>
+        <p class="subtitle">v3.0 Configuration</p>
+    </div>
 </div>
 
 <div class="card">
@@ -66,13 +68,30 @@ EMAIL_1_SMTP_HOST=smtp.gmail.com</pre>
 </div>
 
 <div class="card">
-    <h3>📁 Watched Folders</h3>
+    <h3>Watched Folders</h3>
     <p>Currently watching:</p>
-    <ul class="folder-list">
-        <li>~/Downloads</li>
-        <li>~/Desktop</li>
+    <ul class="folder-list" id="watchFoldersList">
+        {% for folder in watch_folders %}
+        <li>{{ folder }}</li>
+        {% else %}
+        <li class="empty">No folders being watched</li>
+        {% endfor %}
     </ul>
-    <p class="note">Edit <code>WATCH_FOLDERS</code> in <code>.env</code></p>
+    
+    <div id="addFolderSection" style="margin-top: 1rem; display: none;">
+        <div class="form-group" style="display: flex; gap: 0.5rem;">
+            <input type="text" id="new-folder-path" class="form-input" 
+                   placeholder="/home/user/Documents/Inbox">
+            <button class="btn-primary" onclick="submitWatchFolder()">Add</button>
+            <button class="btn-secondary" onclick="cancelWatchFolder()">Cancel</button>
+        </div>
+    </div>
+    
+    <button class="btn-outline" id="addFolderBtn" onclick="showAddFolderInput()" style="margin-top: 1rem;">
+        Add Watch Folder
+    </button>
+    
+    <div id="folderStatus" class="status-message" style="margin-top: 0.5rem;"></div>
 </div>
 
 <div class="card">
@@ -183,6 +202,47 @@ function deleteAllData() {
         if (confirm('This is PERMANENT. Are you absolutely sure?')) {
             alert('Contact support to execute deletion.');
         }
+    }
+}
+
+function showAddFolderInput() {
+    document.getElementById('addFolderSection').style.display = 'block';
+    document.getElementById('addFolderBtn').style.display = 'none';
+    document.getElementById('new-folder-path').focus();
+}
+
+function cancelWatchFolder() {
+    document.getElementById('addFolderSection').style.display = 'none';
+    document.getElementById('addFolderBtn').style.display = 'inline-flex';
+    document.getElementById('new-folder-path').value = '';
+}
+
+async function submitWatchFolder() {
+    const input = document.getElementById('new-folder-path');
+    const status = document.getElementById('folderStatus');
+    const path = input.value.trim();
+    
+    if (!path) {
+        status.innerHTML = '<span class="error">Please enter a folder path</span>';
+        return;
+    }
+    
+    try {
+        const res = await fetch('/settings/add-watch-folder', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({path: path})
+        });
+        const data = await res.json();
+        
+        if (data.status === 'success') {
+            status.innerHTML = '<span class="success">Folder added successfully</span>';
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            status.innerHTML = '<span class="error">' + data.message + '</span>';
+        }
+    } catch (err) {
+        status.innerHTML = '<span class="error">Error: ' + err.message + '</span>';
     }
 }
 </script>

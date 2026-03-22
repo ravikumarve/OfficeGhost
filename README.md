@@ -115,6 +115,17 @@ Layer 5 │ Predictions        ── Anticipates your next action
 - Real-time task queue visibility
 - System health and Ollama status monitoring
 - Prometheus metrics export
+- Notification bell with real-time alerts (errors, tasks, security events)
+- SQLite-backed notification storage
+- First-run setup wizard with 4-step guided configuration
+- Dedicated Email Brain page with classification stats and draft replies
+- Demo mode for showcasing fully populated dashboard
+
+### 🧪 Demo Mode
+- Enable with `DEMO_MODE=true` in `.env`
+- Pre-populated sample data for evaluation and screenshots
+- Yellow banner indicates demo mode is active
+- Perfect for buyers to see the fully featured dashboard
 
 ---
 
@@ -336,7 +347,8 @@ ghostoffice/
 │   ├── queue_manager.py       # Task queue + dead letter
 │   ├── health_monitor.py      # System health checks
 │   ├── retry.py               # Exponential backoff
-│   └── metrics.py             # Prometheus metrics
+│   ├── metrics.py             # Prometheus metrics
+│   └── demo_data.py           # Demo mode sample data
 ├── Security/                   # Security layer
 │   ├── encryption.py          # AES-256 engine
 │   ├── auth.py                # Access control
@@ -354,6 +366,9 @@ ghostoffice/
 │   └── calendar/              # Calendar + meetings
 ├── Tests/                      # Test suite (138 tests)
 ├── Dashboard/                  # Flask web dashboard
+│   ├── app.py                 # Flask routes + API
+│   ├── notifications.py        # SQLite notification storage
+│   └── templates/             # HTML templates
 ├── docs/                       # Documentation
 └── .env.example                # Config template
 ```

@@ -75,6 +75,12 @@ class Config:
     DASHBOARD_PORT = int(os.getenv("DASHBOARD_PORT", 5000))
     DASHBOARD_HOST = os.getenv("DASHBOARD_HOST", "127.0.0.1")
 
+    # ─── Demo Mode ───
+    DEMO_MODE = os.getenv("DEMO_MODE", "false").lower() == "true"
+
+    # ─── Setup ───
+    SETUP_COMPLETE = os.getenv("SETUP_COMPLETE", "false").lower() == "true"
+
     # ─── Security ───
     AUTO_LOCK_MINUTES = int(os.getenv("AUTO_LOCK_MINUTES", 30))
     SESSION_TIMEOUT_HOURS = int(os.getenv("SESSION_TIMEOUT_HOURS", 8))

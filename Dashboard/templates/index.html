@@ -48,12 +48,8 @@
         <div class="card-icon">🔒</div>
         <div class="card-body">
             <h3>Security</h3>
-            <p class="status-value">{{ status.security.overall }}</p>
-            {% if status.encryption.setup and status.encryption.unlocked %}
-            <p class="status-detail">🟢 AES-256 Active - Fully Secure</p>
-            {% else %}
-            <p class="status-detail">🟡 Encryption Disabled</p>
-            {% endif %}
+            <p class="status-value">{{ security_status.overall }}</p>
+            <p class="status-detail {{ security_status.color }}">{{ security_status.icon }} {{ security_status.detail }}</p>
         </div>
     </div>
 
@@ -165,6 +161,34 @@
     </div>
 </div>
 
+<!-- Email Brain Preview -->
+<div class="card email-preview-card">
+    <h3>📧 Email Brain Preview</h3>
+    {% if processed_emails %}
+    <div class="email-list">
+        {% for email in processed_emails[:5] %}
+        <div class="email-item">
+            <div class="email-header">
+                <span class="email-from">{{ email.sender_name or email.sender }}</span>
+                <span class="email-time">{{ email.timestamp[:10]|default('') }}</span>
+            </div>
+            <div class="email-subject">{{ email.subject }}</div>
+            <div class="email-preview">{{ email.preview or email.summary[:80] if email.summary else '' }}...</div>
+            <div class="email-meta">
+                <span class="badge badge-{{ email.classification|lower }}">{{ email.classification }}</span>
+                <span class="email-action">{{ email.action_taken|default('Read') }}</span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <p>📭 No emails processed yet</p>
+        <button class="btn-outline btn-sm" onclick="scanEmails()">Scan Emails Now</button>
+    </div>
+    {% endif %}
+</div>
+
 <!-- Predictions -->
 {% if status.learning.patterns %}
 <div class="card predictions-card">
@@ -191,24 +215,38 @@
 
 <!-- Data Flow Monitor -->
 <div class="card data-flow-card">
-    <h3>🔒 Data Flow Monitor</h3>
-    <div class="flow-grid">
-        <div class="flow-item incoming">
-            <h4>📥 Incoming</h4>
-            <p>All data processed <strong>locally</strong></p>
-            <p class="flow-zero">Zero bytes sent externally</p>
+    <h3>Data Flow Monitor</h3>
+    <div class="flow-monitor">
+        <div class="flow-card local-card">
+            <div class="flow-card-header">
+                <span class="flow-icon">💻</span>
+                <h4>Your Machine</h4>
+            </div>
+            <ul class="flow-list">
+                <li><span class="check">&#10003;</span> Emails processed locally</li>
+                <li><span class="check">&#10003;</span> Files analyzed on-device</li>
+                <li><span class="check">&#10003;</span> AI inference via Ollama</li>
+                <li><span class="check">&#10003;</span> Data encrypted at rest</li>
+                <li><span class="check">&#10003;</span> Zero external data transfer</li>
+            </ul>
         </div>
-        <div class="flow-item blocked">
-            <h4>⛔ Blocked</h4>
-            <p>External API calls: <strong>0</strong></p>
-            <p>Cloud uploads: <strong>0</strong></p>
-            <p>Data sharing: <strong>0</strong></p>
+        
+        <div class="flow-center">
+            <div class="blocked-badge">🚫 BLOCKED</div>
         </div>
-        <div class="flow-item encrypted">
-            <h4>🔐 Encrypted</h4>
-            <p>Memory DB: ✅</p>
-            <p>Contact Data: ✅</p>
-            <p>Learning Data: ✅</p>
+        
+        <div class="flow-card internet-card">
+            <div class="flow-card-header">
+                <span class="flow-icon">🌐</span>
+                <h4>Internet</h4>
+            </div>
+            <ul class="flow-list">
+                <li><span class="cross">&#10007;</span> Cloud API calls</li>
+                <li><span class="cross">&#10007;</span> External data uploads</li>
+                <li><span class="cross">&#10007;</span> Third-party sharing</li>
+                <li><span class="cross">&#10007;</span> Telemetry / analytics</li>
+                <li><span class="cross">&#10007;</span> Remote model hosting</li>
+            </ul>
         </div>
     </div>
 </div>
@@ -281,6 +319,9 @@ async function runCycle() {
 }
 
 async function scanEmails() {
+    {% if demo_mode %}
+    showDemoToast();
+    {% else %}
     try {
         const res = await fetch('/run-cycle', { method: 'POST' });
         const data = await res.json();
@@ -294,9 +335,13 @@ async function scanEmails() {
     } catch (err) {
         alert('Error: ' + err.message);
     }
+    {% endif %}
 }
 
 async function sortFiles() {
+    {% if demo_mode %}
+    showDemoToast();
+    {% else %}
     try {
         const res = await fetch('/run-cycle', { method: 'POST' });
         const data = await res.json();
@@ -310,9 +355,13 @@ async function sortFiles() {
     } catch (err) {
         alert('Error: ' + err.message);
     }
+    {% endif %}
 }
 
 async function extractData() {
+    {% if demo_mode %}
+    showDemoToast();
+    {% else %}
     try {
         const res = await fetch('/run-cycle', { method: 'POST' });
         const data = await res.json();
@@ -326,10 +375,14 @@ async function extractData() {
     } catch (err) {
         alert('Error: ' + err.message);
     }
+    {% endif %}
 }
 
 let isContinuous = false;
 function toggleContinuous() {
+    {% if demo_mode %}
+    showDemoToast();
+    {% else %}
     const btn = document.getElementById('continuous-btn');
     if (!isContinuous) {
         fetch('/start-continuous', { method: 'POST' });
@@ -342,8 +395,24 @@ function toggleContinuous() {
         btn.classList.remove('active');
         isContinuous = false;
     }
+    {% endif %}
 }
 
+let isDemoMode = {{ 'true' if demo_mode else 'false' }};
+
+function showDemoToast() {
+    const toast = document.createElement('div');
+    toast.className = 'demo-toast';
+    toast.innerHTML = '<span class="toast-icon">👻</span> Demo mode — configure your .env to enable live processing';
+    document.body.appendChild(toast);
+    setTimeout(() => toast.classList.add('show'), 10);
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
+{% if not demo_mode %}
 // Auto-refresh status every 30 seconds
 setInterval(async () => {
     try {
@@ -352,5 +421,6 @@ setInterval(async () => {
         // Update cards dynamically
     } catch (e) {}
 }, 30000);
+{% endif %}
 </script>
 {% endblock %}

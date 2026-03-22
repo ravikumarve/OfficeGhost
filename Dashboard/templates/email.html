@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+{% block title %}Email Brain — GhostOffice{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Email Brain</h1>
+        <p class="subtitle">AI-powered email classification and reply drafting</p>
+    </div>
+    <div class="header-actions">
+        <button class="btn-primary" onclick="scanEmails()">
+            Scan Emails
+        </button>
+    </div>
+</div>
+
+{% if stats.total > 0 %}
+<!-- Stats Bar -->
+<div class="stats-bar">
+    <div class="stat-card">
+        <div class="stat-icon">📧</div>
+        <div class="stat-info">
+            <span class="stat-value">{{ stats.total }}</span>
+            <span class="stat-label">Total Processed</span>
+        </div>
+    </div>
+    <div class="stat-card urgent">
+        <div class="stat-icon">🚨</div>
+        <div class="stat-info">
+            <span class="stat-value">{{ stats.urgent }}</span>
+            <span class="stat-label">Urgent</span>
+        </div>
+    </div>
+    <div class="stat-card routine">
+        <div class="stat-icon">📋</div>
+        <div class="stat-info">
+            <span class="stat-value">{{ stats.routine }}</span>
+            <span class="stat-label">Routine</span>
+        </div>
+    </div>
+    <div class="stat-card spam">
+        <div class="stat-icon">🛡️</div>
+        <div class="stat-info">
+            <span class="stat-value">{{ stats.spam }}</span>
+            <span class="stat-label">Spam Caught</span>
+        </div>
+    </div>
+</div>
+
+<!-- Email Table -->
+<div class="card">
+    <h3>Processed Emails</h3>
+    <table class="data-table email-table">
+        <thead>
+            <tr>
+                <th>Classification</th>
+                <th>Sender</th>
+                <th>Subject</th>
+                <th>Confidence</th>
+                <th>Processed</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for email in emails %}
+            <tr>
+                <td>
+                    <span class="badge badge-{{ email.classification|lower }}">{{ email.classification }}</span>
+                </td>
+                <td class="sender">{{ email.sender_name or email.sender }}</td>
+                <td class="subject" title="{{ email.subject }}">{{ email.subject[:60] }}{% if email.subject|length > 60 %}...{% endif %}</td>
+                <td class="confidence">{{ email.confidence|default(0)|int }}%</td>
+                <td class="time">{{ email.timestamp[:10]|default('') }}</td>
+                <td class="actions">
+                    <button class="btn-sm btn-outline" onclick="viewDraft({{ loop.index0 }})">View Draft</button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% else %}
+<!-- Empty State -->
+<div class="card empty-state-card">
+    <div class="empty-content">
+        <span class="empty-icon">📧</span>
+        <h2>No Emails Processed Yet</h2>
+        <p>Start scanning your emails to see AI-powered classification and reply drafting in action.</p>
+        <button class="btn-primary btn-lg" onclick="scanEmails()">
+            Scan Emails Now
+        </button>
+    </div>
+</div>
+{% endif %}
+
+<!-- Draft Reply Modal -->
+<div class="modal" id="draftModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>AI Draft Reply</h3>
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="draft-meta">
+                <p><strong>To:</strong> <span id="draftTo"></span></p>
+                <p><strong>Subject:</strong> <span id="draftSubject"></span></p>
+            </div>
+            <div class="draft-content" id="draftContent">
+                <p class="draft-loading">Loading draft...</p>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" onclick="closeModal()">Close</button>
+            <button class="btn-primary" onclick="copyDraft()">Copy to Clipboard</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const emails = {{ emails|tojson }};
+
+function scanEmails() {
+    fetch('/run-cycle', { method: 'POST' })
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+            } else {
+                alert(`Scanned ${data.emails_processed || 0} emails`);
+                location.reload();
+            }
+        })
+        .catch(err => alert('Error: ' + err.message));
+}
+
+function viewDraft(index) {
+    const email = emails[index];
+    if (!email) return;
+    
+    document.getElementById('draftTo').textContent = email.sender_name || email.sender;
+    document.getElementById('draftSubject').textContent = 'Re: ' + email.subject;
+    document.getElementById('draftContent').innerHTML = email.draft || '<em>No draft available</em>';
+    document.getElementById('draftModal').style.display = 'flex';
+}
+
+function closeModal() {
+    document.getElementById('draftModal').style.display = 'none';
+}
+
+function copyDraft() {
+    const content = document.getElementById('draftContent').textContent;
+    navigator.clipboard.writeText(content).then(() => {
+        alert('Draft copied to clipboard!');
+    });
+}
+
+document.addEventListener('click', function(e) {
+    const modal = document.getElementById('draftModal');
+    if (e.target === modal) {
+        modal.style.display = 'none';
+    }
+});
+</script>
+{% endblock %}

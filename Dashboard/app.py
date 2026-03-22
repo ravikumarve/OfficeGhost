@@ -77,6 +77,10 @@ def login_required(f):
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
+    # Redirect to setup if not complete
+    if not Config.SETUP_COMPLETE:
+        return redirect(url_for("setup"))
+    
     if request.method == "POST":
         # Check IP allowlist
         if SECURITY_MODULES and not check_ip_allowlist(request):
@@ -136,6 +140,145 @@ def logout():
 
 
 # ═══════════════════════════════════════
+# SETUP WIZARD
+# ═══════════════════════════════════════
+
+
+@app.route("/setup")
+def setup():
+    """First-run setup wizard"""
+    if Config.SETUP_COMPLETE:
+        return redirect(url_for("login"))
+    
+    available_models = []
+    try:
+        import requests
+        r = requests.get(f"{Config.OLLAMA_HOST}/api/tags", timeout=5)
+        if r.status_code == 200:
+            data = r.json()
+            available_models = [m.get("name", "") for m in data.get("models", [])]
+    except Exception:
+        pass
+    
+    return render_template("setup.html", models=available_models)
+
+
+@app.route("/api/email/test", methods=["POST"])
+def test_email():
+    """Test email connection"""
+    data = request.get_json()
+    email = data.get("email", "")
+    password = data.get("password", "")
+    imap_host = data.get("imap_host", "imap.gmail.com")
+    
+    try:
+        import imaplib
+        mail = imaplib.IMAP4_SSL(imap_host)
+        mail.login(email, password)
+        mail.logout()
+        return jsonify({"success": True, "message": "Connected successfully"})
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)})
+
+
+@app.route("/api/setup/email", methods=["POST"])
+def save_email_setup():
+    """Save email configuration"""
+    data = request.get_json()
+    
+    env_path = Config.BASE_DIR / ".env"
+    with open(env_path, "r") as f:
+        lines = f.readlines()
+    
+    email_num = 1
+    for line in lines:
+        if line.startswith("EMAIL_"):
+            parts = line.split("_")
+            if len(parts) >= 2:
+                try:
+                    num = int(parts[1].split("_")[0])
+                    email_num = max(email_num, num + 1)
+                except (ValueError, IndexError):
+                    pass
+    
+    new_lines = []
+    for line in lines:
+        if line.startswith(f"EMAIL_{email_num}_ADDRESS="):
+            line = f"EMAIL_{email_num}_ADDRESS={data.get('email', '')}\n"
+        elif line.startswith(f"EMAIL_{email_num}_PASSWORD="):
+            line = f"EMAIL_{email_num}_PASSWORD={data.get('password', '')}\n"
+        elif line.startswith(f"EMAIL_{email_num}_IMAP_HOST="):
+            line = f"EMAIL_{email_num}_IMAP_HOST={data.get('imap_host', 'imap.gmail.com')}\n"
+        elif line.startswith(f"EMAIL_{email_num}_SMTP_HOST="):
+            line = f"EMAIL_{email_num}_SMTP_HOST={data.get('smtp_host', 'smtp.gmail.com')}\n"
+        new_lines.append(line)
+    
+    if not any(f"EMAIL_{email_num}_ADDRESS=" in l for l in new_lines):
+        new_lines.append(f"EMAIL_{email_num}_ADDRESS={data.get('email', '')}\n")
+        new_lines.append(f"EMAIL_{email_num}_PASSWORD={data.get('password', '')}\n")
+        new_lines.append(f"EMAIL_{email_num}_IMAP_HOST={data.get('imap_host', 'imap.gmail.com')}\n")
+        new_lines.append(f"EMAIL_{email_num}_SMTP_HOST={data.get('smtp_host', 'smtp.gmail.com')}\n")
+    
+    with open(env_path, "w") as f:
+        f.writelines(new_lines)
+    
+    return jsonify({"status": "success"})
+
+
+@app.route("/api/setup/model", methods=["POST"])
+def save_model_setup():
+    """Save model selection"""
+    data = request.get_json()
+    model = data.get("model", "")
+    
+    env_path = Config.BASE_DIR / ".env"
+    with open(env_path, "r") as f:
+        lines = f.readlines()
+    
+    new_lines = []
+    found = False
+    for line in lines:
+        if line.startswith("OLLAMA_MODEL="):
+            new_lines.append(f"OLLAMA_MODEL={model}\n")
+            found = True
+        else:
+            new_lines.append(line)
+    
+    if not found:
+        new_lines.append(f"OLLAMA_MODEL={model}\n")
+    
+    with open(env_path, "w") as f:
+        f.writelines(new_lines)
+    
+    return jsonify({"status": "success"})
+
+
+@app.route("/api/setup/complete", methods=["POST"])
+def complete_setup():
+    """Mark setup as complete"""
+    env_path = Config.BASE_DIR / ".env"
+    with open(env_path, "r") as f:
+        lines = f.readlines()
+    
+    new_lines = []
+    found = False
+    for line in lines:
+        if line.startswith("SETUP_COMPLETE="):
+            new_lines.append("SETUP_COMPLETE=true\n")
+            found = True
+        else:
+            new_lines.append(line)
+    
+    if not found:
+        new_lines.append("SETUP_COMPLETE=true\n")
+    
+    with open(env_path, "w") as f:
+        f.writelines(new_lines)
+    
+    return jsonify({"status": "success"})
+
+
+# ═══════════════════════════════════════
 # MAIN DASHBOARD
 # ═══════════════════════════════════════
 
@@ -143,6 +286,8 @@ def logout():
 @app.route("/")
 def index():
     """Landing page - shows for everyone"""
+    if not Config.SETUP_COMPLETE:
+        return redirect(url_for("setup"))
     if session.get("authenticated"):
         return redirect("/dashboard")
     return render_template("landing.html")
@@ -201,10 +346,50 @@ python3 main.py</pre>
 @app.route("/dashboard")
 @login_required
 def dashboard():
-    p = get_pilot()
-    status = p.get_status()
-    recent_activity = p.audit.get_recent(10) if p.audit else []
-    return render_template("index.html", status=status, activity=recent_activity)
+    if Config.DEMO_MODE:
+        from core.demo_data import get_demo_status, get_demo_emails, get_demo_notifications
+        
+        status = get_demo_status()
+        processed_emails = get_demo_emails()[:5]
+        recent_activity = get_demo_notifications()
+        security_status = {
+            "overall": "🟢 FULLY SECURE",
+            "color": "green",
+            "icon": "🟢",
+            "detail": "AES-256 Encrypted"
+        }
+    else:
+        p = get_pilot()
+        status = p.get_status()
+        recent_activity = p.audit.get_recent(10) if p.audit else []
+        
+        from modules.email_brain.reader import EmailReader
+        processed_emails = EmailReader.get_processed_emails(5) or []
+        
+        encryption = status.get("encryption", {})
+        if encryption.get("setup") and encryption.get("unlocked"):
+            security_status = {
+                "overall": "🟢 FULLY SECURE",
+                "color": "green",
+                "icon": "🟢",
+                "detail": "AES-256 Encrypted"
+            }
+        else:
+            security_status = {
+                "overall": "🟡 PARTIALLY SECURE",
+                "color": "yellow",
+                "icon": "🟡",
+                "detail": "Encryption Not Initialized"
+            }
+    
+    return render_template(
+        "index.html", 
+        status=status, 
+        activity=recent_activity,
+        processed_emails=processed_emails,
+        security_status=security_status,
+        demo_mode=Config.DEMO_MODE
+    )
 
 
 # ═══════════════════════════════════════
@@ -260,6 +445,77 @@ def api_status():
 def api_health():
     p = get_pilot()
     return jsonify(p.health.check_all())
+
+
+# ═══════════════════════════════════════
+# NOTIFICATION ROUTES
+# ═══════════════════════════════════════
+
+
+@app.route("/api/notifications")
+@login_required
+def api_notifications():
+    from dashboard.notifications import get_notification_db
+    db = get_notification_db()
+    notifications = db.get_recent(20)
+    return jsonify({
+        "unread_count": db.get_unread_count(),
+        "notifications": [
+            {
+                "id": n.id,
+                "category": n.category,
+                "title": n.title,
+                "message": n.message,
+                "read": n.read,
+                "created_at": n.created_at,
+                "metadata": n.metadata
+            }
+            for n in notifications
+        ]
+    })
+
+
+@app.route("/api/notifications/mark-read", methods=["POST"])
+@login_required
+def api_mark_read():
+    from dashboard.notifications import get_notification_db
+    db = get_notification_db()
+    db.mark_all_read()
+    return jsonify({"success": True})
+
+
+@app.route("/api/notifications/unread-count")
+@login_required
+def api_unread_count():
+    from dashboard.notifications import get_notification_db
+    db = get_notification_db()
+    return jsonify({"count": db.get_unread_count()})
+
+
+# ═══════════════════════════════════════
+# EMAIL BRAIN ROUTES
+# ═══════════════════════════════════════
+
+
+@app.route("/email")
+@login_required
+def email_brain():
+    if Config.DEMO_MODE:
+        from core.demo_data import get_demo_emails
+        emails = get_demo_emails()
+    else:
+        from modules.email_brain.reader import EmailReader
+        emails = EmailReader.get_processed_emails(50) or []
+    
+    stats = {
+        "total": len(emails),
+        "urgent": sum(1 for e in emails if e.get("classification", "").upper() == "URGENT"),
+        "routine": sum(1 for e in emails if e.get("classification", "").upper() == "ROUTINE"),
+        "spam": sum(1 for e in emails if e.get("classification", "").upper() == "SPAM"),
+        "meeting": sum(1 for e in emails if e.get("classification", "").upper() == "MEETING"),
+    }
+    
+    return render_template("email.html", emails=emails, stats=stats, demo_mode=Config.DEMO_MODE)
 
 
 # ═══════════════════════════════════════
@@ -405,12 +661,85 @@ def settings():
     except Exception:
         pass
     
+    # Get watch folders from .env
+    watch_folders = []
+    env_path = Config.BASE_DIR / ".env"
+    if env_path.exists():
+        with open(env_path, "r") as f:
+            for line in f:
+                if line.strip().startswith("WATCH_FOLDERS="):
+                    value = line.split("=", 1)[1].strip()
+                    if value:
+                        watch_folders = [f.strip() for f in value.split(",") if f.strip()]
+                    break
+    
     return render_template(
         "settings.html", 
         backups=backups,
         available_models=available_models,
-        current_model=current_model
+        current_model=current_model,
+        watch_folders=watch_folders
     )
+
+
+@app.route("/settings/add-watch-folder", methods=["POST"])
+@login_required
+def add_watch_folder():
+    import os
+    from pathlib import Path
+    
+    data = request.get_json()
+    folder_path = data.get("path", "").strip()
+    
+    if not folder_path:
+        return jsonify({"status": "error", "message": "Path cannot be empty"})
+    
+    # Expand user path (e.g., ~/Downloads)
+    folder_path = os.path.expanduser(folder_path)
+    
+    # Validate path exists
+    if not os.path.exists(folder_path):
+        return jsonify({"status": "error", "message": "Folder does not exist"})
+    
+    if not os.path.isdir(folder_path):
+        return jsonify({"status": "error", "message": "Path is not a directory"})
+    
+    # Read .env file
+    env_path = Config.BASE_DIR / ".env"
+    if not env_path.exists():
+        return jsonify({"status": "error", "message": ".env file not found"})
+    
+    with open(env_path, "r") as f:
+        lines = f.readlines()
+    
+    # Find or create WATCH_FOLDERS line
+    found = False
+    new_lines = []
+    for line in lines:
+        if line.strip().startswith("WATCH_FOLDERS="):
+            existing = line.split("=", 1)[1].strip()
+            if existing:
+                folders = [f.strip() for f in existing.split(",")]
+                # Normalize path for comparison
+                normalized = str(Path(folder_path).resolve())
+                if normalized not in [str(Path(f).resolve()) for f in folders]:
+                    folders.append(folder_path)
+                    line = "WATCH_FOLDERS=" + ",".join(folders) + "\n"
+                else:
+                    return jsonify({"status": "error", "message": "Folder already in watch list"})
+            else:
+                line = f"WATCH_FOLDERS={folder_path}\n"
+            found = True
+        new_lines.append(line)
+    
+    if not found:
+        new_lines.append(f"WATCH_FOLDERS={folder_path}\n")
+    
+    # Write back
+    with open(env_path, "w") as f:
+        f.writelines(new_lines)
+    
+    return jsonify({"status": "success", "message": "Folder added to watch list"})
 
 
 @app.route("/api/models", methods=["GET"])

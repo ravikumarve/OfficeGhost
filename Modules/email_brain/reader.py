@@ -8,12 +8,29 @@ import imaplib
 import logging
 from email.header import decode_header
 from email.message import Message
-from typing import Optional
+from typing import Optional, List
+from datetime import datetime
+from dataclasses import dataclass
 
 from core.config import Config
 from core.retry import retry_imap
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class ProcessedEmail:
+    """Processed email record"""
+    msg_id: str
+    sender: str
+    sender_name: str
+    subject: str
+    classification: str
+    timestamp: str
+
+
+# Global storage for processed emails
+_processed_emails: List[ProcessedEmail] = []
 
 
 class EmailReader:
@@ -22,6 +39,44 @@ class EmailReader:
     def __init__(self, account: dict) -> None:
         self.account = account
         self.conn: Optional[imaplib.IMAP4_SSL] = None
+
+    @staticmethod
+    def add_processed_email(
+        msg_id: str,
+        sender: str,
+        sender_name: str,
+        subject: str,
+        classification: str
+    ):
+        """Track a processed email"""
+        global _processed_emails
+        email_record = ProcessedEmail(
+            msg_id=msg_id,
+            sender=sender,
+            sender_name=sender_name,
+            subject=subject[:50] + "..." if len(subject) > 50 else subject,
+            classification=classification,
+            timestamp=datetime.now().isoformat()
+        )
+        _processed_emails.insert(0, email_record)
+        # Keep only last 50
+        _processed_emails = _processed_emails[:50]
+
+    @staticmethod
+    def get_processed_emails(limit: int = 5) -> List[dict]:
+        """Get recent processed emails"""
+        global _processed_emails
+        return [
+            {
+                "msg_id": e.msg_id,
+                "sender": e.sender,
+                "sender_name": e.sender_name,
+                "subject": e.subject,
+                "classification": e.classification,
+                "timestamp": e.timestamp
+            }
+            for e in _processed_emails[:limit]
+        ]
 
     @retry_imap(max_retries=3, base_delay=2.0)
     def connect(self) -> None:
