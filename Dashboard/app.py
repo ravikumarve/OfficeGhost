@@ -203,7 +203,8 @@ python3 main.py</pre>
 def dashboard():
     p = get_pilot()
     status = p.get_status()
-    return render_template("index.html", status=status)
+    recent_activity = p.audit.get_recent(10) if p.audit else []
+    return render_template("index.html", status=status, activity=recent_activity)
 
 
 # ═══════════════════════════════════════

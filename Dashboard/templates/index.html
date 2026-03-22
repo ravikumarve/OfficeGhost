@@ -62,6 +62,30 @@
     </div>
 </div>
 
+<!-- Recent Activity Feed -->
+<div class="card activity-feed-card">
+    <h3>📋 Recent Activity</h3>
+    {% if activity %}
+    <div class="activity-list">
+        {% for entry in activity %}
+        <div class="activity-item">
+            <span class="activity-time">{{ entry.timestamp[:19]|replace('T', ' ') }}</span>
+            <span class="activity-icon">
+                {% if entry.category == 'email' %}📧
+                {% elif entry.category == 'file' %}📁
+                {% elif entry.category == 'data' %}📊
+                {% elif entry.category == 'security' %}🔒
+                {% else %}⚙️{% endif %}
+            </span>
+            <span class="activity-detail">{{ entry.detail }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="empty-state">GhostOffice is ready. Run your first cycle to see activity here.</p>
+    {% endif %}
+</div>
+
 <!-- Module Status -->
 <div class="card-grid-3">
     <div class="card module-card">

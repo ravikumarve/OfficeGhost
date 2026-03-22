@@ -775,3 +775,46 @@ main.with-sidebar {
     font-weight: 600;
     font-family: 'JetBrains Mono', monospace;
 }
+
+/* Activity Feed */
+.activity-feed-card {
+    margin-top: 1.5rem;
+}
+
+.activity-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.activity-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.5rem;
+    background: var(--bg-primary);
+    border-radius: 8px;
+}
+
+.activity-time {
+    color: #64748b;
+    font-size: 0.85rem;
+    min-width: 120px;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.activity-icon {
+    font-size: 1.2rem;
+}
+
+.activity-detail {
+    color: #e2e8f0;
+    flex: 1;
+}
+
+.activity-feed-card .empty-state {
+    color: #64748b;
+    text-align: center;
+    padding: 2rem;
+}
