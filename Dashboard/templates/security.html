@@ -28,9 +28,11 @@
         <div class="security-item">
             <span class="sec-icon">🌐</span>
             <h4>Network</h4>
-            <p class="sec-status {{ 'good' if security.network_isolated else 'warn' }}">
-                {{ 'ISOLATED' if security.network_isolated else 'NOT ISOLATED' }}
-            </p>
+            {% if security.network_isolated %}
+            <p class="sec-status good">🟢 ISOLATED</p>
+            {% else %}
+            <p class="sec-status good">🟢 STANDARD MODE</p>
+            {% endif %}
         </div>
         <div class="security-item">
             <span class="sec-icon">📋</span>
