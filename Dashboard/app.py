@@ -1,7 +1,13 @@
 """
-AI Office Pilot - Web Dashboard
+GhostOffice - Web Dashboard
 Beautiful local web interface
 """
+
+import sys
+import os
+
+# Add parent directory to path for imports
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import json
 from datetime import datetime, timedelta
