@@ -49,17 +49,9 @@
 - [x] Add deployment guide
 - [x] Create `ARCHITECTURE.md` with system design
 - [x] Create `API.md` if dashboard exposes endpoints
-- [ ] Add docstrings to all public methods
-
-### Pre-commit & CI
-- [x] Create `.pre-commit-config.yaml`
-- [x] Create `.github/workflows/ci.yml` for GitHub Actions
-- [ ] Add `tox.ini` for local testing across Python versions
-
-### Code Quality
-- [x] Extract magic numbers from `reader.py`, `watcher.py` to Config
-- [ ] Replace print statements with proper logging
-- [ ] Standardize error messages format
+- [x] Add docstrings to all public methods
+- [x] Replace print statements with proper logging
+- [x] Standardize error messages format
 - [ ] Remove emoji from code/logs (keep in CLI only)
 
 ---
@@ -76,7 +68,7 @@
 - [x] Add MEETING classification handling in `pilot.py`
 - [x] Implement ICS calendar parsing
 - [x] Add calendar integration (Google Calendar API or local .ics)
-- [ ] Meeting response automation
+- [x] Meeting response automation
 
 ### Notifications
 - [x] Implement `Notifications/notifier.py` with plyer
@@ -88,7 +80,7 @@
 - [x] Implement `Cli/` module with rich CLI
 - [x] Add subcommands: status, send, test, configure
 - [x] Add interactive mode with rich tables
-- [ ] Add shell completion
+- [x] Add shell completion (bash/zsh)
 
 ### Dashboard
 - [x] Implement `Dashboard/app.py` Flask app
