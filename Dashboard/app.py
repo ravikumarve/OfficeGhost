@@ -80,7 +80,7 @@ def login():
     # Redirect to setup if not complete
     if not Config.SETUP_COMPLETE:
         return redirect(url_for("setup"))
-    
+
     if request.method == "POST":
         # Check IP allowlist
         if SECURITY_MODULES and not check_ip_allowlist(request):
@@ -149,17 +149,18 @@ def setup():
     """First-run setup wizard"""
     if Config.SETUP_COMPLETE:
         return redirect(url_for("login"))
-    
+
     available_models = []
     try:
         import requests
+
         r = requests.get(f"{Config.OLLAMA_HOST}/api/tags", timeout=5)
         if r.status_code == 200:
             data = r.json()
             available_models = [m.get("name", "") for m in data.get("models", [])]
     except Exception:
         pass
-    
+
     return render_template("setup.html", models=available_models)
 
 
@@ -170,9 +171,10 @@ def test_email():
     email = data.get("email", "")
     password = data.get("password", "")
     imap_host = data.get("imap_host", "imap.gmail.com")
-    
+
     try:
         import imaplib
+
         mail = imaplib.IMAP4_SSL(imap_host)
         mail.login(email, password)
         mail.logout()
@@ -185,11 +187,11 @@ def test_email():
 def save_email_setup():
     """Save email configuration"""
     data = request.get_json()
-    
+
     env_path = Config.BASE_DIR / ".env"
     with open(env_path, "r") as f:
         lines = f.readlines()
-    
+
     email_num = 1
     for line in lines:
         if line.startswith("EMAIL_"):
@@ -200,7 +202,7 @@ def save_email_setup():
                     email_num = max(email_num, num + 1)
                 except (ValueError, IndexError):
                     pass
-    
+
     new_lines = []
     for line in lines:
         if line.startswith(f"EMAIL_{email_num}_ADDRESS="):
@@ -212,16 +214,16 @@ def save_email_setup():
         elif line.startswith(f"EMAIL_{email_num}_SMTP_HOST="):
             line = f"EMAIL_{email_num}_SMTP_HOST={data.get('smtp_host', 'smtp.gmail.com')}\n"
         new_lines.append(line)
-    
+
     if not any(f"EMAIL_{email_num}_ADDRESS=" in l for l in new_lines):
         new_lines.append(f"EMAIL_{email_num}_ADDRESS={data.get('email', '')}\n")
         new_lines.append(f"EMAIL_{email_num}_PASSWORD={data.get('password', '')}\n")
         new_lines.append(f"EMAIL_{email_num}_IMAP_HOST={data.get('imap_host', 'imap.gmail.com')}\n")
         new_lines.append(f"EMAIL_{email_num}_SMTP_HOST={data.get('smtp_host', 'smtp.gmail.com')}\n")
-    
+
     with open(env_path, "w") as f:
         f.writelines(new_lines)
-    
+
     return jsonify({"status": "success"})
 
 
@@ -230,11 +232,11 @@ def save_model_setup():
     """Save model selection"""
     data = request.get_json()
     model = data.get("model", "")
-    
+
     env_path = Config.BASE_DIR / ".env"
     with open(env_path, "r") as f:
         lines = f.readlines()
-    
+
     new_lines = []
     found = False
     for line in lines:
@@ -243,13 +245,13 @@ def save_model_setup():
             found = True
         else:
             new_lines.append(line)
-    
+
     if not found:
         new_lines.append(f"OLLAMA_MODEL={model}\n")
-    
+
     with open(env_path, "w") as f:
         f.writelines(new_lines)
-    
+
     return jsonify({"status": "success"})
 
 
@@ -259,7 +261,7 @@ def complete_setup():
     env_path = Config.BASE_DIR / ".env"
     with open(env_path, "r") as f:
         lines = f.readlines()
-    
+
     new_lines = []
     found = False
     for line in lines:
@@ -268,17 +270,17 @@ def complete_setup():
             found = True
         else:
             new_lines.append(line)
-    
+
     if not found:
         if new_lines and not new_lines[-1].endswith("\n"):
             new_lines[-1] = new_lines[-1] + "\n"
         new_lines.append("SETUP_COMPLETE=true\n")
-    
+
     with open(env_path, "w") as f:
         f.writelines(new_lines)
-    
+
     Config.reload()
-    
+
     return jsonify({"status": "success"})
 
 
@@ -308,7 +310,7 @@ def docs():
 def dashboard():
     if Config.DEMO_MODE:
         from core.demo_data import get_demo_status, get_demo_emails, get_demo_notifications
-        
+
         status = get_demo_status()
         processed_emails = get_demo_emails()[:5]
         recent_activity = get_demo_notifications()
@@ -316,39 +318,40 @@ def dashboard():
             "overall": "🟢 FULLY SECURE",
             "color": "green",
             "icon": "🟢",
-            "detail": "AES-256 Encrypted"
+            "detail": "AES-256 Encrypted",
         }
     else:
         p = get_pilot()
         status = p.get_status()
         recent_activity = p.audit.get_recent(10) if p.audit else []
-        
+
         from modules.email_brain.reader import EmailReader
+
         processed_emails = EmailReader.get_processed_emails(5) or []
-        
+
         encryption = status.get("encryption", {})
         if encryption.get("setup") and encryption.get("unlocked"):
             security_status = {
                 "overall": "🟢 FULLY SECURE",
                 "color": "green",
                 "icon": "🟢",
-                "detail": "AES-256 Encrypted"
+                "detail": "AES-256 Encrypted",
             }
         else:
             security_status = {
                 "overall": "🟡 PARTIALLY SECURE",
                 "color": "yellow",
                 "icon": "🟡",
-                "detail": "Encryption Not Initialized"
+                "detail": "Encryption Not Initialized",
             }
-    
+
     return render_template(
-        "index.html", 
-        status=status, 
+        "index.html",
+        status=status,
         activity=recent_activity,
         processed_emails=processed_emails,
         security_status=security_status,
-        demo_mode=Config.DEMO_MODE
+        demo_mode=Config.DEMO_MODE,
     )
 
 
@@ -416,29 +419,33 @@ def api_health():
 @login_required
 def api_notifications():
     from dashboard.notifications import get_notification_db
+
     db = get_notification_db()
     notifications = db.get_recent(20)
-    return jsonify({
-        "unread_count": db.get_unread_count(),
-        "notifications": [
-            {
-                "id": n.id,
-                "category": n.category,
-                "title": n.title,
-                "message": n.message,
-                "read": n.read,
-                "created_at": n.created_at,
-                "metadata": n.metadata
-            }
-            for n in notifications
-        ]
-    })
+    return jsonify(
+        {
+            "unread_count": db.get_unread_count(),
+            "notifications": [
+                {
+                    "id": n.id,
+                    "category": n.category,
+                    "title": n.title,
+                    "message": n.message,
+                    "read": n.read,
+                    "created_at": n.created_at,
+                    "metadata": n.metadata,
+                }
+                for n in notifications
+            ],
+        }
+    )
 
 
 @app.route("/api/notifications/mark-read", methods=["POST"])
 @login_required
 def api_mark_read():
     from dashboard.notifications import get_notification_db
+
     db = get_notification_db()
     db.mark_all_read()
     return jsonify({"success": True})
@@ -448,6 +455,7 @@ def api_mark_read():
 @login_required
 def api_unread_count():
     from dashboard.notifications import get_notification_db
+
     db = get_notification_db()
     return jsonify({"count": db.get_unread_count()})
 
@@ -462,11 +470,13 @@ def api_unread_count():
 def email_brain():
     if Config.DEMO_MODE:
         from core.demo_data import get_demo_emails
+
         emails = get_demo_emails()
     else:
         from modules.email_brain.reader import EmailReader
+
         emails = EmailReader.get_processed_emails(50) or []
-    
+
     stats = {
         "total": len(emails),
         "urgent": sum(1 for e in emails if e.get("classification", "").upper() == "URGENT"),
@@ -474,7 +484,7 @@ def email_brain():
         "spam": sum(1 for e in emails if e.get("classification", "").upper() == "SPAM"),
         "meeting": sum(1 for e in emails if e.get("classification", "").upper() == "MEETING"),
     }
-    
+
     return render_template("email.html", emails=emails, stats=stats, demo_mode=Config.DEMO_MODE)
 
 
@@ -485,38 +495,30 @@ def email_brain():
 
 @app.route("/learning")
 @login_required
-def learning():
+def learning_page():
+    """Learning progress page"""
     p = get_pilot()
-    report = p.memory.get_learning_report() if p.memory else {}
-    return render_template("learning.html", report=report)
+    status = p.get_status()
 
+    learning_data = status.get("learning", {})
 
-@app.route("/api/learning")
-@login_required
-def api_learning():
-    p = get_pilot()
-    if p.memory:
-        return jsonify(p.memory.get_learning_report())
-    return jsonify({})
-
-
-# ═══════════════════════════════════════
-# SECURITY ROUTES
-# ═══════════════════════════════════════
-
-
-@app.route("/security")
-@login_required
-def security():
-    p = get_pilot()
-    sec_status = p.threats.get_status()
-    compliance = p.compliance.check_compliance()
-    audit_entries = p.audit.get_recent(20)
-    encryption_status = p.crypto.get_status()
     return render_template(
-        "security.html", security=sec_status, compliance=compliance, 
-        audit=audit_entries, encryption=encryption_status
+        "learning.html",
+        learning_score=learning_data.get("learning_score", 0),
+        accuracy=learning_data.get("accuracy", 0),
+        patterns_found=learning_data.get("patterns_found", 0),
+        contacts_learned=learning_data.get("contacts_learned", 0),
+        categories_learned=learning_data.get("categories_learned", 0),
+        total_actions=learning_data.get("total_actions", 0),
+        patterns=learning_data.get("patterns", []),
     )
+
+
+@app.route("/assistant")
+@login_required
+def assistant_page():
+    """AI Assistant chat page"""
+    return render_template("assistant.html")
 
 
 @app.route("/api/security")
@@ -608,19 +610,20 @@ def compliance_report():
 def settings():
     p = get_pilot()
     backups = p.backup.list_backups()
-    
+
     # Get available models from Ollama
     available_models = []
     current_model = Config.OLLAMA_MODEL
     try:
         import requests
+
         r = requests.get(f"{Config.OLLAMA_HOST}/api/tags", timeout=5)
         if r.status_code == 200:
             data = r.json()
             available_models = [m.get("name", "") for m in data.get("models", [])]
     except Exception:
         pass
-    
+
     # Get watch folders from .env
     watch_folders = []
     env_path = Config.BASE_DIR / ".env"
@@ -632,13 +635,13 @@ def settings():
                     if value:
                         watch_folders = [f.strip() for f in value.split(",") if f.strip()]
                     break
-    
+
     return render_template(
-        "settings.html", 
+        "settings.html",
         backups=backups,
         available_models=available_models,
         current_model=current_model,
-        watch_folders=watch_folders
+        watch_folders=watch_folders,
     )
 
 
@@ -647,31 +650,31 @@ def settings():
 def add_watch_folder():
     import os
     from pathlib import Path
-    
+
     data = request.get_json()
     folder_path = data.get("path", "").strip()
-    
+
     if not folder_path:
         return jsonify({"status": "error", "message": "Path cannot be empty"})
-    
+
     # Expand user path (e.g., ~/Downloads)
     folder_path = os.path.expanduser(folder_path)
-    
+
     # Validate path exists
     if not os.path.exists(folder_path):
         return jsonify({"status": "error", "message": "Folder does not exist"})
-    
+
     if not os.path.isdir(folder_path):
         return jsonify({"status": "error", "message": "Path is not a directory"})
-    
+
     # Read .env file
     env_path = Config.BASE_DIR / ".env"
     if not env_path.exists():
         return jsonify({"status": "error", "message": ".env file not found"})
-    
+
     with open(env_path, "r") as f:
         lines = f.readlines()
-    
+
     # Find or create WATCH_FOLDERS line
     found = False
     new_lines = []
@@ -691,14 +694,14 @@ def add_watch_folder():
                 line = f"WATCH_FOLDERS={folder_path}\n"
             found = True
         new_lines.append(line)
-    
+
     if not found:
         new_lines.append(f"WATCH_FOLDERS={folder_path}\n")
-    
+
     # Write back
     with open(env_path, "w") as f:
         f.writelines(new_lines)
-    
+
     return jsonify({"status": "success", "message": "Folder added to watch list"})
 
 
@@ -707,11 +710,15 @@ def add_watch_folder():
 def api_get_models():
     """Get available Ollama models"""
     import requests
+
     try:
         r = requests.get(f"{Config.OLLAMA_HOST}/api/tags", timeout=10)
         if r.status_code == 200:
             data = r.json()
-            models = [{"name": m.get("name", ""), "size": m.get("size", 0)} for m in data.get("models", [])]
+            models = [
+                {"name": m.get("name", ""), "size": m.get("size", 0)}
+                for m in data.get("models", [])
+            ]
             return jsonify({"status": "success", "models": models, "current": Config.OLLAMA_MODEL})
         return jsonify({"status": "error", "message": "Failed to fetch models"})
     except Exception as e:
@@ -723,20 +730,19 @@ def api_get_models():
 def api_pull_model():
     """Pull a new Ollama model"""
     import requests
+
     data = request.json
     model_name = data.get("model", "").strip()
-    
+
     if not model_name:
         return jsonify({"status": "error", "message": "Model name required"})
-    
+
     try:
-        r = requests.post(
-            f"{Config.OLLAMA_HOST}/api/pull",
-            json={"name": model_name},
-            timeout=300
-        )
+        r = requests.post(f"{Config.OLLAMA_HOST}/api/pull", json={"name": model_name}, timeout=300)
         if r.status_code == 200:
-            return jsonify({"status": "success", "message": f"Model '{model_name}' pulled successfully"})
+            return jsonify(
+                {"status": "success", "message": f"Model '{model_name}' pulled successfully"}
+            )
         return jsonify({"status": "error", "message": "Failed to pull model"})
     except requests.exceptions.Timeout:
         return jsonify({"status": "error", "message": "Model pull timed out"})
@@ -750,23 +756,24 @@ def api_set_model():
     """Set the active Ollama model"""
     data = request.json
     model_name = data.get("model", "").strip()
-    
+
     if not model_name:
         return jsonify({"status": "error", "message": "Model name required"})
-    
+
     # Update .env file
     env_path = Config.BASE_DIR / ".env"
     env_content = env_path.read_text() if env_path.exists() else ""
-    
+
     # Update or add OLLAMA_MODEL
     if "OLLAMA_MODEL=" in env_content:
         import re
+
         env_content = re.sub(r"OLLAMA_MODEL=.*", f"OLLAMA_MODEL={model_name}", env_content)
     else:
         env_content += f"\nOLLAMA_MODEL={model_name}\n"
-    
+
     env_path.write_text(env_content)
-    
+
     return jsonify({"status": "success", "message": f"Model set to '{model_name}'"})
 
 
@@ -847,6 +854,38 @@ def disable_2fa():
         p.auth.disable_2fa(password, token)
         return jsonify({"status": "2FA disabled"})
     except (AuthError, TwoFactorError) as e:
+        return jsonify({"error": str(e)}), 400
+
+
+# ═══════════════════════════════════════
+# ASSISTANT API
+# ═══════════════════════════════════════
+
+
+@app.route("/api/assistant/ask", methods=["POST"])
+@login_required
+@rate_limit_api()
+def assistant_ask():
+    """Ask the AI assistant a question"""
+    try:
+        data = request.get_json()
+        question = data.get("question", "")
+
+        if not question:
+            return jsonify({"error": "No question provided"}), 400
+
+        # Import and use assistant
+        try:
+            from modules.assistant.simple_assistant import ask_simple_assistant
+
+            answer = ask_simple_assistant(question)
+            return jsonify({"answer": answer})
+        except ImportError:
+            return jsonify(
+                {"answer": "The assistant module is not available. Please check your installation."}
+            )
+
+    except Exception as e:
         return jsonify({"error": str(e)}), 400
 
 

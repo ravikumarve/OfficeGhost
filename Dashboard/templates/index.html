@@ -31,6 +31,9 @@
     <button class="btn-outline" onclick="runCycle()">
         🔄 Run All
     </button>
+    <button class="btn-outline" onclick="location.href='/assistant'">
+        🤖 Assistant
+    </button>
 </div>
 
 <!-- Status Cards -->
@@ -70,6 +73,15 @@
             <h3>Cycles</h3>
             <p class="status-value">{{ status.cycles_completed }}</p>
             <p class="status-detail">{{ status.queue.completed }} tasks completed</p>
+        </div>
+    </div>
+    
+    <div class="card status-card" onclick="location.href='/assistant'" style="cursor: pointer;">
+        <div class="card-icon">🤖</div>
+        <div class="card-body">
+            <h3>Assistant</h3>
+            <p class="status-value">Ready</p>
+            <p class="status-detail">Ask me anything</p>
         </div>
     </div>
 </div>

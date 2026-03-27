@@ -11,9 +11,9 @@
 
 <br/>
 
-[![Version](https://img.shields.io/badge/version-v3.0.0-0d1117?style=for-the-badge&labelColor=58a6ff&color=0d1117)](https://github.com/ravikumarve/OfficeGhost/releases)
+[![Version](https://img.shields.io/badge/version-v3.0.1-0d1117?style=for-the-badge&labelColor=58a6ff&color=0d1117)](https://github.com/ravikumarve/OfficeGhost/releases)
 [![Python](https://img.shields.io/badge/python-3.8+-0d1117?style=for-the-badge&logo=python&logoColor=white&labelColor=3572A5&color=0d1117)](https://python.org)
-[![Tests](https://img.shields.io/badge/tests-135%20passing-0d1117?style=for-the-badge&labelColor=238636&color=0d1117)](https://github.com/ravikumarve/OfficeGhost/tree/main/Tests)
+[![Tests](https://img.shields.io/badge/tests-41%20passing-0d1117?style=for-the-badge&labelColor=238636&color=0d1117)](https://github.com/ravikumarve/OfficeGhost/tree/main/Tests)
 [![License](https://img.shields.io/badge/license-MIT-0d1117?style=for-the-badge&labelColor=6e40c9&color=0d1117)](LICENSE)
 [![Docker](https://img.shields.io/badge/docker-ready-0d1117?style=for-the-badge&logo=docker&logoColor=white&labelColor=1D63ED&color=0d1117)](https://hub.docker.com)
 [![Status](https://img.shields.io/badge/status-active-0d1117?style=for-the-badge&labelColor=238636&color=0d1117)](#)
@@ -120,6 +120,8 @@ Layer 5 │ Predictions        ── Anticipates your next action
 - First-run setup wizard with 4-step guided configuration
 - Dedicated Email Brain page with classification stats and draft replies
 - Demo mode for showcasing fully populated dashboard
+- **New**: AI Assistant chat interface with system context awareness
+- **New**: Full monitoring stack with Prometheus + Grafana integration
 
 ### 🧪 Demo Mode
 - Enable with `DEMO_MODE=true` in `.env`
@@ -445,7 +447,26 @@ services:
     environment:
       - OLLAMA_HOST=http://host.docker.internal:11434
     restart: unless-stopped
+
+### Production Monitoring Stack
+
+For production deployments, use the monitoring stack with Prometheus and Grafana:
+
+```bash
+# Start full monitoring stack
+docker-compose -f docker-compose.monitoring.yml up -d
+
+# Access monitoring tools:
+# Grafana: http://localhost:3000 (admin/admin)
+# Prometheus: http://localhost:9090
+# Node Exporter: http://localhost:9100
 ```
+
+The monitoring stack includes:
+- **Prometheus** for metrics collection
+- **Grafana** for visualization dashboards  
+- **Node Exporter** for system metrics
+- Pre-configured GhostOffice dashboards
 
 ---
 

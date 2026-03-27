@@ -1,0 +1,44 @@
+version: '3.8'
+services:
+  ghostoffice:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ghostoffice-prod
+    ports:
+      - "5000:5000"
+    volumes:
+      - ghostoffice-data:/data
+      - ./logs:/app/logs
+    environment:
+      - OLLAMA_HOST=http://host.docker.internal:11434
+      - NODE_ENV=production
+      - DEMO_MODE=false
+      - LOG_LEVEL=INFO
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Optional: Ollama service for production
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama-prod
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    restart: unless-stopped
+
+volumes:
+  ghostoffice-data:
+    driver: local
+  ollama-data:
+    driver: local

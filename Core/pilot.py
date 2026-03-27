@@ -10,8 +10,9 @@ from datetime import datetime
 from typing import Optional
 
 from core.config import Config
+from core.logging_config import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 from core.ollama_brain import OllamaBrain
 from core.queue_manager import QueueManager, Priority
 from core.health_monitor import HealthMonitor
@@ -589,9 +590,9 @@ class AIOfficePilot:
         interval = Config.CYCLE_INTERVAL_MINUTES
 
         logger.info(f"Starting continuous mode - cycle every {interval} minutes")
-        print(f"\n🤖 GhostOffice running continuously")
-        print(f"   Cycle every {interval} minutes")
-        print(f"   Press Ctrl+C to stop\n")
+        logger.info("🤖 GhostOffice running continuously")
+        logger.info(f"Cycle every {interval} minutes")
+        logger.info("Press Ctrl+C to stop")
 
         while self.is_running:
             try:
@@ -599,30 +600,14 @@ class AIOfficePilot:
                 health = self.health.check_all()
                 if health["ram"]["warning"]:
                     logger.warning(f"RAM usage high: {health['ram']['percent']}%")
-                    print(f"   ⚠️ RAM usage high: {health['ram']['percent']}%")
-
-                # Run cycle
-                result = self.run_cycle()
-
-                if result.get("needs_auth"):
-                    logger.error(f"Authentication required: {result['error']}")
-                    print(f"   🔒 {result['error']}")
-                    break
-
-                # Log cycle summary
-                logger.info(
-                    f"Cycle #{result['cycle']}: {result['emails_processed']} emails, "
-                    f"{result['files_organized']} files, {result['data_entries']} data "
-                    f"({result['duration_seconds']}s)"
-                )
+                    logger.warning(f"RAM usage high: {health['ram']['percent']}%")
+                    self.notifier.send(
+                        f"High RAM usage: {health['ram']['percent']}%", level="warning"
+                    )
 
                 # Print summary
-                print(
-                    f"   ✅ Cycle #{result['cycle']}: "
-                    f"{result['emails_processed']} emails, "
-                    f"{result['files_organized']} files, "
-                    f"{result['data_entries']} data "
-                    f"({result['duration_seconds']}s)"
+                logger.info(
+                    "Prediction: {message} - Confidence: {confidence:.0f}%".format(**prediction)
                 )
 
                 if result["predictions"]:
@@ -680,7 +665,7 @@ class AIOfficePilot:
         self.auth.logout()
 
         logger.info("GhostOffice shutdown complete")
-        print("\n🔒 GhostOffice shut down securely")
+        logger.info("GhostOffice shut down securely")
 
     # ═══════════════════════════════════════
     # STATUS & REPORTS

@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+{% block title %}Assistant — GhostOffice{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>🤖 Office Assistant</h1>
+        <p class="subtitle">Ask questions about your GhostOffice system</p>
+    </div>
+</div>
+
+<!-- Chat Interface -->
+<div class="chat-container">
+    <div class="chat-messages" id="chatMessages">
+        <div class="message assistant">
+            <div class="message-content">
+                <p>Hello! I'm your GhostOffice Assistant. I can help you with:</p>
+                <ul>
+                    <li>📁 File processing status and questions</li>
+                    <li>📧 Email account configuration and operations</li>
+                    <li>🧠 System health and learning progress</li>
+                    <li>🔒 Security features and status</li>
+                    <li>⚙️ General GhostOffice operations</li>
+                </ul>
+                <p>What would you like to know?</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="chat-input">
+        <input type="text" id="questionInput" placeholder="Ask me anything about GhostOffice..." />
+        <button onclick="askQuestion()">Ask</button>
+    </div>
+    
+    <!-- Quick Questions -->
+    <div class="quick-questions">
+        <h3>Quick Questions</h3>
+        <div class="question-grid">
+            <button class="btn-outline" onclick="askQuickQuestion('What files are waiting to be processed?')">
+                📁 Files Waiting
+            </button>
+            <button class="btn-outline" onclick="askQuickQuestion('How is my system health?')">
+                💻 System Health
+            </button>
+            <button class="btn-outline" onclick="askQuickQuestion('What email accounts are configured?')">
+                📧 Email Accounts
+            </button>
+            <button class="btn-outline" onclick="askQuickQuestion('How much has the AI learned?')">
+                🧠 Learning Progress
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+.chat-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.chat-messages {
+    height: 400px;
+    overflow-y: auto;
+    border: 1px solid #e1e4e8;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 16px;
+    background: #fafbfc;
+}
+
+.message {
+    margin-bottom: 12px;
+}
+
+.message.user {
+    text-align: right;
+}
+
+.message.assistant {
+    text-align: left;
+}
+
+.message-content {
+    display: inline-block;
+    padding: 12px 16px;
+    border-radius: 18px;
+    max-width: 70%;
+}
+
+.message.user .message-content {
+    background: #007bff;
+    color: white;
+}
+
+.message.assistant .message-content {
+    background: #e9ecef;
+    color: #333;
+}
+
+.chat-input {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+}
+
+.chat-input input {
+    flex: 1;
+    padding: 12px 16px;
+    border: 1px solid #d1d5da;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.chat-input button {
+    padding: 12px 24px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.quick-questions {
+    margin-top: 24px;
+}
+
+.question-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 8px;
+    margin-top: 12px;
+}
+</style>
+
+<script>
+async function askQuestion() {
+    const input = document.getElementById('questionInput');
+    const question = input.value.trim();
+    
+    if (!question) return;
+    
+    // Add user message
+    addMessage(question, 'user');
+    input.value = '';
+    
+    // Show loading
+    addMessage('Thinking...', 'assistant');
+    
+    try {
+        const response = await fetch('/api/assistant/ask', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ question: question })
+        });
+        
+        const data = await response.json();
+        
+        // Remove loading message and add actual response
+        removeLastMessage();
+        addMessage(data.answer, 'assistant');
+        
+    } catch (error) {
+        removeLastMessage();
+        addMessage('Sorry, I encountered an error. Please try again.', 'assistant');
+    }
+}
+
+function askQuickQuestion(question) {
+    document.getElementById('questionInput').value = question;
+    askQuestion();
+}
+
+function addMessage(content, type) {
+    const messagesDiv = document.getElementById('chatMessages');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${type}`;
+    messageDiv.innerHTML = `<div class="message-content"><p>${content}</p></div>`;
+    messagesDiv.appendChild(messageDiv);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
+
+function removeLastMessage() {
+    const messagesDiv = document.getElementById('chatMessages');
+    const lastMessage = messagesDiv.lastElementChild;
+    if (lastMessage) {
+        messagesDiv.removeChild(lastMessage);
+    }
+}
+
+// Enter key support
+document.getElementById('questionInput').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        askQuestion();
+    }
+});
+</script>
+{% endblock %}

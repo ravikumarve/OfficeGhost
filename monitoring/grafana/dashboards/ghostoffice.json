@@ -1,0 +1,109 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "GhostOffice Metrics",
+    "tags": ["ghostoffice", "ai", "automation"],
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "System Health",
+        "type": "gauge",
+        "gridPos": {
+          "x": 0,
+          "y": 0,
+          "w": 6,
+          "h": 4
+        },
+        "targets": [
+          {
+            "expr": "system_health",
+            "legendFormat": "Health",
+            "refId": "A"
+          }
+        ],
+        "max": 100,
+        "min": 0,
+        "thresholds": [
+          {
+            "value": 80,
+            "color": "green"
+          },
+          {
+            "value": 60,
+            "color": "yellow"
+          },
+          {
+            "value": 40,
+            "color": "red"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Email Processing Rate",
+        "type": "graph",
+        "gridPos": {
+          "x": 6,
+          "y": 0,
+          "w": 6,
+          "h": 4
+        },
+        "targets": [
+          {
+            "expr": "rate(emails_processed_total[5m])",
+            "legendFormat": "Emails/min",
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Memory Usage",
+        "type": "graph",
+        "gridPos": {
+          "x": 0,
+          "y": 4,
+          "w": 6,
+          "h": 4
+        },
+        "targets": [
+          {
+            "expr": "memory_usage_percent",
+            "legendFormat": "RAM %",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {
+            "format": "percent"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Queue Status",
+        "type": "stat",
+        "gridPos": {
+          "x": 6,
+          "y": 4,
+          "w": 6,
+          "h": 4
+        },
+        "targets": [
+          {
+            "expr": "queue_pending_tasks",
+            "legendFormat": "Pending Tasks",
+            "refId": "A"
+          }
+        ]
+      }
+    ],
+    "time": {
+      "from": "now-6h",
+      "to": "now"
+    }
+  },
+  "folderId": 0,
+  "overwrite": true
+}

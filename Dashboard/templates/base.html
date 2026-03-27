@@ -27,14 +27,19 @@
                     <span class="icon">📧</span> Email Brain
                 </a>
             </li>
-            <li class="{{ 'active' if request.endpoint == 'learning' }}">
-                <a href="{{ url_for('learning') }}">
+            <li class="{{ 'active' if request.endpoint == 'learning_page' }}">
+                <a href="{{ url_for('learning_page') }}">
                     <span class="icon">🧠</span> Learning
                 </a>
             </li>
-            <li class="{{ 'active' if request.endpoint == 'security' }}">
-                <a href="{{ url_for('security') }}">
+            <li class="{{ 'active' if request.endpoint == 'api_security' }}">
+                <a href="/api/security">
                     <span class="icon">🔒</span> Security
+                </a>
+            </li>
+            <li class="{{ 'active' if request.endpoint == 'assistant_page' }}">
+                <a href="/assistant">
+                    <span class="icon">🤖</span> Assistant
                 </a>
             </li>
             <li class="{{ 'active' if request.endpoint == 'settings' }}">
