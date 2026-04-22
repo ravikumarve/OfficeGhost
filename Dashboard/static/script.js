@@ -2,6 +2,60 @@
  * AI Office Pilot — Dashboard JavaScript
  */
 
+// ─── Mobile Menu Functionality ───
+let isMobileMenuOpen = false;
+
+function toggleMobileMenu() {
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.querySelector('.sidebar-overlay');
+    const menuToggle = document.querySelector('.menu-toggle');
+    
+    isMobileMenuOpen = !isMobileMenuOpen;
+    
+    if (isMobileMenuOpen) {
+        sidebar.classList.add('active');
+        overlay.classList.add('active');
+        menuToggle.classList.add('active');
+        menuToggle.setAttribute('aria-expanded', 'true');
+        document.body.style.overflow = 'hidden';
+    } else {
+        sidebar.classList.remove('active');
+        overlay.classList.remove('active');
+        menuToggle.classList.remove('active');
+        menuToggle.setAttribute('aria-expanded', 'false');
+        document.body.style.overflow = '';
+    }
+}
+
+function closeMobileMenu() {
+    if (isMobileMenuOpen) {
+        toggleMobileMenu();
+    }
+}
+
+// Close menu when clicking on overlay
+const overlay = document.querySelector('.sidebar-overlay');
+if (overlay) {
+    overlay.addEventListener('click', closeMobileMenu);
+}
+
+// Close menu when clicking on nav links (mobile)
+const navLinks = document.querySelectorAll('.nav-links a');
+navLinks.forEach(link => {
+    link.addEventListener('click', () => {
+        if (window.innerWidth <= 768) {
+            closeMobileMenu();
+        }
+    });
+});
+
+// Close menu on escape key
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && isMobileMenuOpen) {
+        closeMobileMenu();
+    }
+});
+
 // ─── Auto-refresh status ───
 let refreshInterval = null;
 
@@ -52,6 +106,22 @@ function showNotification(title, body, type = 'info') {
         toast.classList.remove('show');
         setTimeout(() => toast.remove(), 300);
     }, 5000);
+}
+
+// ─── Notification Functions with ARIA Support ───
+async function toggleNotifications() {
+    const dropdown = document.getElementById('notificationDropdown');
+    const bellBtn = document.querySelector('.bell-btn');
+    const isExpanded = dropdown.hasAttribute('hidden');
+    
+    if (isExpanded) {
+        dropdown.removeAttribute('hidden');
+        bellBtn.setAttribute('aria-expanded', 'true');
+        await loadNotifications();
+    } else {
+        dropdown.setAttribute('hidden', 'true');
+        bellBtn.setAttribute('aria-expanded', 'false');
+    }
 }
 
 // ─── Keyboard shortcuts ───

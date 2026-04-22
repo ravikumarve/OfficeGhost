@@ -1,78 +1,76 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}GhostOffice{% endblock %}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <title>{% block title %}GHOSTOFFICE{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='brutalist.css') }}">
 </head>
 <body>
     {% if session.authenticated %}
-    <nav class="sidebar">
-        <div class="sidebar-header">
-            <span class="logo">📊</span>
-            <h2>GhostOffice</h2>
-            <span class="version">v3.0</span>
+    <!-- Mobile Menu Toggle -->
+    <button class="btn" onclick="toggleMobileMenu()" aria-label="Toggle navigation menu">
+        MENU
+    </button>
+    
+    <!-- Mobile Overlay -->
+    <div class="overlay" onclick="closeMobileMenu()"></div>
+    
+    <nav class="nav-box" role="navigation" aria-label="Main navigation">
+        <div class="logo-box">
+            GHOSTOFFICE
+            <div class="accent-text">V3.0</div>
         </div>
 
-        <ul class="nav-links">
-            <li class="{{ 'active' if request.endpoint == 'dashboard' }}">
-                <a href="{{ url_for('dashboard') }}">
-                    <span class="icon">📊</span> Dashboard
-                </a>
-            </li>
-            <li class="{{ 'active' if request.endpoint == 'email_brain' }}">
-                <a href="{{ url_for('email_brain') }}">
-                    <span class="icon">📧</span> Email Brain
-                </a>
-            </li>
-            <li class="{{ 'active' if request.endpoint == 'learning_page' }}">
-                <a href="{{ url_for('learning_page') }}">
-                    <span class="icon">🧠</span> Learning
-                </a>
-            </li>
-            <li class="{{ 'active' if request.endpoint == 'api_security' }}">
-                <a href="/api/security">
-                    <span class="icon">🔒</span> Security
-                </a>
-            </li>
-            <li class="{{ 'active' if request.endpoint == 'assistant_page' }}">
-                <a href="/assistant">
-                    <span class="icon">🤖</span> Assistant
-                </a>
-            </li>
-            <li class="{{ 'active' if request.endpoint == 'settings' }}">
-                <a href="{{ url_for('settings') }}">
-                    <span class="icon">⚙️</span> Settings
-                </a>
-            </li>
-        </ul>
+        <div class="meta-box">
+            <p class="accent-text">EST. 2024</p>
+            <p class="accent-text">100% LOCAL</p>
+            <p class="accent-text">NO SHADOWS</p>
+            <p class="accent-text">NO GRADIENTS</p>
+        </div>
 
-        <div class="sidebar-footer">
-            <div class="security-badge">
-                <span class="dot green"></span>
-                <span>Encrypted & Local</span>
-            </div>
-            <a href="{{ url_for('logout') }}" class="logout-btn">
-                🔐 Lock & Logout
+        <div class="nav-links">
+            <a href="{{ url_for('dashboard') }}" class="{{ 'active' if request.endpoint == 'dashboard' else '' }}">
+                DASHBOARD
+            </a>
+            <a href="{{ url_for('email_brain') }}" class="{{ 'active' if request.endpoint == 'email_brain' else '' }}">
+                EMAIL BRAIN
+            </a>
+            <a href="{{ url_for('learning_page') }}" class="{{ 'active' if request.endpoint == 'learning_page' else '' }}">
+                LEARNING
+            </a>
+            <a href="/api/security" class="{{ 'active' if request.endpoint == 'api_security' else '' }}">
+                SECURITY
+            </a>
+            <a href="/assistant" class="{{ 'active' if request.endpoint == 'assistant_page' else '' }}">
+                ASSISTANT
+            </a>
+            <a href="{{ url_for('settings') }}" class="{{ 'active' if request.endpoint == 'settings' else '' }}">
+                SETTINGS
+            </a>
+        </div>
+
+        <div class="security-badge">
+            <span class="tag">ENCRYPTED</span>
+            <a href="{{ url_for('logout') }}" class="btn btn-danger">
+                LOCK & LOGOUT
             </a>
         </div>
     </nav>
 
     <!-- Notification Bell -->
     <div class="notification-bell" id="notificationBell">
-        <button class="bell-btn" onclick="toggleNotifications()">
-            🔔
-            <span class="bell-badge" id="bellBadge" style="display: none;">0</span>
+        <button class="btn" onclick="toggleNotifications()" aria-label="Notifications" aria-haspopup="true" aria-expanded="false">
+            NOTIFICATIONS
+            <span class="bell-badge" id="bellBadge" style="display: none;" aria-live="polite">0</span>
         </button>
-        <div class="notification-dropdown" id="notificationDropdown">
+        <div class="notification-dropdown" id="notificationDropdown" role="dialog" aria-modal="true" aria-label="Notifications" hidden>
             <div class="dropdown-header">
-                <span>Notifications</span>
-                <button class="mark-read-btn" onclick="markAllRead(event)">Mark all read</button>
+                <span class="heading-text">NOTIFICATIONS</span>
+                <button class="btn btn-danger" onclick="markAllRead(event)" aria-label="Mark all notifications as read">MARK ALL READ</button>
             </div>
-            <div class="notification-list" id="notificationList">
-                <div class="notification-loading">Loading...</div>
+            <div class="notification-list" id="notificationList" role="list">
+                <div class="notification-loading" role="status" aria-live="polite">LOADING NOTIFICATIONS...</div>
             </div>
         </div>
     </div>
@@ -80,20 +78,21 @@
 
     <!-- Demo Mode Banner -->
     {% if demo_mode %}
-    <div class="demo-banner">
-        <span class="demo-icon">👻</span>
-        <span class="demo-text"><strong>DEMO MODE</strong> — Sample data shown. Configure your .env to enable live processing.</span>
+    <div class="marquee">
+        <div class="marquee-content">
+            DEMO MODE — SAMPLE DATA SHOWN — CONFIGURE .ENV FOR LIVE PROCESSING — DEMO MODE — SAMPLE DATA SHOWN — 
+        </div>
     </div>
     {% endif %}
 
-    <main class="{% if session.authenticated %}with-sidebar{% endif %}">
+    <main class="container">
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
-        <div class="flash-messages">
+        <div class="content-box">
             {% for category, message in messages %}
             <div class="flash {{ category }}">
-                {{ message }}
-                <button class="flash-close" onclick="this.parentElement.remove()">✕</button>
+                <strong>{{ category|upper }}:</strong> {{ message }}
+                <button class="btn btn-danger" onclick="this.parentElement.remove()">DISMISS</button>
             </div>
             {% endfor %}
         </div>
@@ -117,24 +116,26 @@
             
             if (data.unread_count > 0) {
                 badge.textContent = data.unread_count > 99 ? '99+' : data.unread_count;
-                badge.style.display = 'flex';
+                badge.style.display = 'inline-block';
             } else {
                 badge.style.display = 'none';
             }
             
             if (data.notifications && data.notifications.length > 0) {
                 list.innerHTML = data.notifications.map(n => `
-                    <div class="notification-item ${n.read ? 'read' : 'unread'}">
-                        <div class="notif-icon">${getCategoryIcon(n.category)}</div>
-                        <div class="notif-content">
-                            <div class="notif-title">${escapeHtml(n.title)}</div>
-                            <div class="notif-message">${escapeHtml(n.message)}</div>
-                            <div class="notif-time">${formatTime(n.created_at)}</div>
+                    <div class="content-box ${n.read ? 'read' : 'unread'}">
+                        <div class="stat">
+                            <span class="stat-num">${getCategoryIcon(n.category)}</span>
+                            <div>
+                                <div class="heading-text">${escapeHtml(n.title)}</div>
+                                <div class="body-text">${escapeHtml(n.message)}</div>
+                                <div class="accent-text">${formatTime(n.created_at)}</div>
+                            </div>
                         </div>
                     </div>
                 `).join('');
             } else {
-                list.innerHTML = '<div class="notification-empty">No notifications yet</div>';
+                list.innerHTML = '<div class="content-box">NO NOTIFICATIONS YET</div>';
             }
         } catch (e) {
             console.error('Failed to load notifications:', e);
@@ -163,10 +164,10 @@
         const now = new Date();
         const diff = (now - date) / 1000;
         
-        if (diff < 60) return 'Just now';
-        if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
-        if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
-        return date.toLocaleDateString();
+        if (diff < 60) return 'JUST NOW';
+        if (diff < 3600) return Math.floor(diff / 60) + 'M AGO';
+        if (diff < 86400) return Math.floor(diff / 3600) + 'H AGO';
+        return date.toLocaleDateString().toUpperCase();
     }
 
     async function toggleNotifications() {

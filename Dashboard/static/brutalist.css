@@ -1,0 +1,328 @@
+/* BRUTALIST.CSS — GhostOffice Raw Redesign */
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   BRUTALIST CONSTITUTION — DO NOT DEVIATE
+   Every pixel matters. Every border defines space. Every sharp edge is intentional.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Work+Sans:wght@800;900&family=Space+Mono:wght@400&family=JetBrains+Mono:wght@700&display=swap');
+
+:root {
+  /* ─── RAW COLOR PALETTE ─── */
+  --bg: #F5F5F5;      /* Raw White — backgrounds only */
+  --text: #000000;    /* Pure Black — text and borders */
+  --blue: #0000FF;    /* Hyperlink Blue — links, accents, hover states */
+  --red: #FF0000;     /* Pure Red — errors, danger, CTAs */
+  
+  /* ─── SPACING SYSTEM ─── */
+  --space-4: 4px;
+  --space-8: 8px;
+  --space-12: 12px;
+  --space-16: 16px;
+  --space-24: 24px;
+  --space-32: 32px;
+  --space-48: 48px;
+  --space-64: 64px;
+  --space-80: 80px;
+}
+
+/* ─── GLOBAL RESET ─── */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Space Mono', monospace;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.6;
+  border: 2px solid var(--text);
+}
+
+/* ─── TYPOGRAPHY SYSTEM ─── */
+.display-text {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: clamp(32px, 8vw, 64px);
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.heading-text {
+  font-family: 'Work Sans', sans-serif;
+  font-weight: 900;
+  font-size: clamp(24px, 5vw, 36px);
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+}
+
+.subheading-text {
+  font-family: 'Work Sans', sans-serif;
+  font-weight: 800;
+  font-size: clamp(18px, 4vw, 24px);
+  text-transform: uppercase;
+}
+
+.body-text {
+  font-family: 'Space Mono', monospace;
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+.accent-text {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+/* ─── LAYOUT SYSTEM ─── */
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: var(--space-32) 0;
+  border-left: 2px solid var(--text);
+  border-right: 2px solid var(--text);
+}
+
+.content-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  margin-bottom: var(--space-32);
+}
+
+.grid-item {
+  padding: var(--space-24);
+  border-right: 2px solid var(--text);
+}
+
+.grid-item:last-child {
+  border-right: none;
+}
+
+/* ─── COMPONENT PATTERNS ─── */
+
+/* Primary Button */
+.btn {
+  display: inline-block;
+  background: var(--text);
+  color: var(--bg);
+  padding: var(--space-20) var(--space-48);
+  font-family: 'Work Sans', sans-serif;
+  font-weight: 900;
+  font-size: 18px;
+  text-transform: uppercase;
+  text-decoration: none;
+  border: 2px solid var(--text);
+  cursor: pointer;
+  transition: none;
+}
+
+.btn:hover {
+  background: var(--blue);
+  border-color: var(--blue);
+}
+
+.btn-danger {
+  background: var(--red);
+  border-color: var(--red);
+}
+
+.btn-danger:hover {
+  background: var(--blue);
+  border-color: var(--blue);
+}
+
+/* Tags/Labels */
+.tag {
+  display: inline-block;
+  background: var(--blue);
+  color: var(--bg);
+  padding: var(--space-4) var(--space-12);
+  font-size: 12px;
+  font-family: 'JetBrains Mono', monospace;
+  text-transform: uppercase;
+}
+
+/* Statistics Display */
+.stat {
+  padding: var(--space-16);
+  border-bottom: 2px solid var(--text);
+  display: flex;
+  align-items: center;
+}
+
+.stat-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: 36px;
+  margin-right: var(--space-16);
+}
+
+.stat-label {
+  font-size: 14px;
+  text-transform: uppercase;
+}
+
+/* Content Boxes */
+.content-box {
+  padding: var(--space-24);
+  border-right: 2px solid var(--text);
+}
+
+.content-box:last-child {
+  border-right: none;
+}
+
+.content-box h3 {
+  font-family: 'Work Sans', sans-serif;
+  font-weight: 900;
+  font-size: 32px;
+  margin-bottom: var(--space-16);
+  text-transform: uppercase;
+}
+
+.content-box p {
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+/* Marquee/Banner */
+.marquee {
+  background: var(--text);
+  color: var(--bg);
+  padding: var(--space-16) 0;
+  overflow: hidden;
+  position: relative;
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 24px;
+  text-transform: uppercase;
+}
+
+.marquee-content {
+  display: inline-block;
+  padding-left: 100%;
+  animation: marquee 15s linear infinite;
+  white-space: nowrap;
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-100%); }
+}
+
+/* ─── HEADER PATTERN ─── */
+header {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  border-bottom: 2px solid var(--text);
+}
+
+.logo-box {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 64px;
+  padding: var(--space-32);
+  border-right: 2px solid var(--text);
+  line-height: 0.9;
+}
+
+.meta-box {
+  padding: var(--space-32);
+  border-right: 2px solid var(--text);
+}
+
+.meta-box p {
+  font-size: 12px;
+  margin-bottom: var(--space-8);
+}
+
+.nav-box {
+  padding: var(--space-32);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.nav-box a {
+  font-family: 'Work Sans', sans-serif;
+  font-weight: 900;
+  font-size: 24px;
+  color: var(--text);
+  text-decoration: none;
+  text-transform: uppercase;
+  margin-bottom: var(--space-8);
+}
+
+.nav-box a:hover {
+  color: var(--blue);
+}
+
+/* ─── RESPONSIVE BREAKPOINTS ─── */
+@media (max-width: 768px) {
+  header {
+    grid-template-columns: 1fr;
+  }
+
+  .logo-box {
+    border-right: none;
+    border-bottom: 2px solid var(--text);
+  }
+
+  .meta-box {
+    border-right: none;
+    border-bottom: 2px solid var(--text);
+  }
+
+  .content-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .grid-item {
+    border-right: none;
+    border-bottom: 2px solid var(--text);
+  }
+
+  .grid-item:last-child {
+    border-bottom: none;
+  }
+
+  .content-box {
+    border-right: none;
+    border-bottom: 2px solid var(--text);
+  }
+
+  .content-box:last-child {
+    border-bottom: none;
+  }
+}
+
+/* ─── ABSOLUTE PROHIBITIONS ─── */
+/* These properties are NEVER allowed in brutalist design */
+
+/* ❌ FORBIDDEN — Never use these */
+.wrong {
+  border-radius: 8px;        /* NO rounded corners */
+  border-radius: 4px;       /* NO rounded corners */
+  border-radius: 2px;       /* NO rounded corners — ZERO TOLERANCE */
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);  /* NO shadows */
+  text-shadow: 0 1px 2px rgba(0,0,0,0.1); /* NO text shadows */
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); /* NO gradients */
+  background: radial-gradient(circle, #ffffff 0%, #f0f0f0 100%);   /* NO gradients */
+  opacity: 0.5;             /* NO transparency */
+  filter: blur(2px);        /* NO blur filters */
+  backdrop-filter: blur(4px); /* NO backdrop filters */
+  transition: all 0.3s ease; /* Minimal transitions only, otherwise forbidden */
+  animation: fadeIn 0.5s;   /* Unless marquee-style */
+  transform: rotate(5deg);   /* Unless intentionally "broken" */
+  color: #333333;           /* NO gray text */
+  background-color: #f0f0f0; /* NO off-whites */
+}
+
+/* THE ONLY ACCEPTABLE VALUES */
+.correct {
+  border-radius: 0;
+  border-radius: 0px;
+  /* There are no exceptions. Ever. */
+}

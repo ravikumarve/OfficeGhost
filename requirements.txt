@@ -29,6 +29,7 @@ pyotp>=2.9.0
 
 # Dashboard
 flask>=3.0.0
+flask-wtf>=1.2.0
 
 # CLI
 rich>=13.7.0

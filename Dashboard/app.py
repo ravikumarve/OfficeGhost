@@ -14,6 +14,7 @@ from datetime import datetime, timedelta
 from functools import wraps
 
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify, flash
+from flask_wtf.csrf import CSRFProtect
 
 from core.pilot import AIOfficePilot
 from core.config import Config
@@ -35,7 +36,16 @@ except ImportError:
     SECURITY_MODULES = False
 
 app = Flask(__name__)
-app.secret_key = "change-this-to-random-secret-on-setup"
+
+# Configure CSRF protection
+csrf = CSRFProtect(app)
+
+# Set secret key from environment or generate one
+app.secret_key = os.getenv("FLASK_SECRET_KEY")
+if not app.secret_key:
+    import secrets
+    app.secret_key = secrets.token_hex(32)
+    print("⚠️  WARNING: Using auto-generated FLASK_SECRET_KEY. Set FLASK_SECRET_KEY in .env for production.")
 
 # Global pilot instance
 pilot = None
@@ -115,6 +125,14 @@ def login():
             try:
                 p.login(password, totp_token=totp_token or None)
                 session["authenticated"] = True
+                
+                # Check if password change is required
+                from Dashboard.auth import get_current_user, force_password_change_required
+                user = get_current_user()
+                if user and force_password_change_required(user["id"]):
+                    flash("⚠️ You must change your password before continuing", "warning")
+                    return redirect(url_for("change_password"))
+                
                 return redirect(url_for("dashboard"))
             except TwoFactorError as e:
                 flash(str(e), "error")
@@ -137,6 +155,43 @@ def logout():
     session.clear()
     flash("Logged out securely", "success")
     return redirect(url_for("login"))
+
+
+@app.route("/change-password", methods=["GET", "POST"])
+@login_required
+def change_password():
+    """Change user password"""
+    from Dashboard.auth import get_current_user, change_password, validate_password_strength, force_password_change_required
+    
+    user = get_current_user()
+    if not user:
+        return redirect(url_for("login"))
+    
+    # Check if password change is required
+    force_change = force_password_change_required(user["id"])
+    
+    if request.method == "POST":
+        old_password = request.form.get("old_password", "")
+        new_password = request.form.get("new_password", "")
+        confirm_password = request.form.get("confirm_password", "")
+        
+        # Validate passwords match
+        if new_password != confirm_password:
+            flash("New passwords do not match", "error")
+            return render_template("settings.html", force_password_change=force_change)
+        
+        # Change password
+        success, message = change_password(user["id"], old_password, new_password)
+        if success:
+            flash("Password changed successfully!", "success")
+            if force_change:
+                return redirect(url_for("dashboard"))
+            return redirect(url_for("settings"))
+        else:
+            flash(message, "error")
+            return render_template("settings.html", force_password_change=force_change)
+    
+    return render_template("settings.html", force_password_change=force_change)
 
 
 # ═══════════════════════════════════════

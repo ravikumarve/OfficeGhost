@@ -17,6 +17,7 @@
         </div>
 
         <form method="POST" class="login-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             {% if setup %}
             <div class="setup-notice">
                 <span class="icon">🔐</span>

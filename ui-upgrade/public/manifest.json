@@ -1,0 +1,67 @@
+{
+  "background_color": "#0A0A0B",
+  "categories": ["productivity", "utilities", "business"],
+  "description": "Your Private AI Assistant for Email, Files & Data",
+  "display": "standalone",
+  "icons": [
+    {
+      "purpose": "any maskable",
+      "sizes": "192x192",
+      "src": "/icon-192.png",
+      "type": "image/png"
+    },
+    {
+      "purpose": "any maskable",
+      "sizes": "512x512",
+      "src": "/icon-512.png",
+      "type": "image/png"
+    }
+  ],
+  "name": "GhostOffice",
+  "orientation": "portrait-primary",
+  "prefer_related_applications": false,
+  "related_applications": [],
+  "screenshots": [
+    {
+      "label": "GhostOffice Dashboard",
+      "sizes": "1280x720",
+      "src": "/screenshots/dashboard.png",
+      "type": "image/png"
+    },
+    {
+      "label": "Email Brain Interface",
+      "sizes": "1280x720",
+      "src": "/screenshots/email-brain.png",
+      "type": "image/png"
+    }
+  ],
+  "short_name": "GhostOffice",
+  "shortcuts": [
+    {
+      "description": "Quick email scan",
+      "icons": [
+        {
+          "sizes": "192x192",
+          "src": "/icon-192.png"
+        }
+      ],
+      "name": "Scan Emails",
+      "short_name": "Scan Emails",
+      "url": "/email"
+    },
+    {
+      "description": "Organize files",
+      "icons": [
+        {
+          "sizes": "192x192",
+          "src": "/icon-192.png"
+        }
+      ],
+      "name": "Sort Files",
+      "short_name": "Sort Files",
+      "url": "/files"
+    }
+  ],
+  "start_url": "/",
+  "theme_color": "#F59E0B"
+}

@@ -1,438 +1,241 @@
 {% extends "base.html" %}
-{% block title %}Dashboard — GhostOffice{% endblock %}
+{% block title %}DASHBOARD — GHOSTOFFICE{% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <div>
-        <h1>📊 Dashboard</h1>
-        <p class="subtitle">Your AI office assistant is protecting your workflow</p>
+<div class="content-grid">
+    <!-- HEADER SECTION -->
+    <div class="grid-item">
+        <h1 class="display-text">GHOSTOFFICE</h1>
+        <p class="body-text">YOUR PRIVATE AI ASSISTANT FOR EMAIL, FILES & DATA</p>
     </div>
-    <div class="header-actions">
-        <button class="btn-primary" id="run-cycle-btn" onclick="runCycle()">
-            ▶️ Run Cycle
+
+    <div class="grid-item">
+        <div class="stat">
+            <span class="stat-num">{{ status.cycles_completed }}</span>
+            <span class="stat-label">COMPLETED CYCLES</span>
+        </div>
+    </div>
+
+    <div class="grid-item">
+        <div class="stat">
+            <span class="stat-num">{{ status.learning.learning_score|default(0) }}</span>
+            <span class="stat-label">AI INTELLIGENCE SCORE</span>
+        </div>
+    </div>
+</div>
+
+<!-- QUICK ACTIONS -->
+<div class="content-grid">
+    <div class="grid-item">
+        <button class="btn" onclick="runCycle()">
+            RUN CYCLE
         </button>
-        <button class="btn-secondary" id="continuous-btn" onclick="toggleContinuous()">
-            🔄 Start Continuous
+    </div>
+    <div class="grid-item">
+        <button class="btn" onclick="scanEmails()">
+            SCAN EMAILS
+        </button>
+    </div>
+    <div class="grid-item">
+        <button class="btn" onclick="sortFiles()">
+            SORT FILES
         </button>
     </div>
 </div>
 
-<!-- Quick Actions -->
-<div class="quick-actions">
-    <button class="btn-outline" onclick="scanEmails()">
-        📧 Scan Emails
-    </button>
-    <button class="btn-outline" onclick="sortFiles()">
-        📁 Sort Files
-    </button>
-    <button class="btn-outline" onclick="extractData()">
-        📊 Extract Data
-    </button>
-    <button class="btn-outline" onclick="runCycle()">
-        🔄 Run All
-    </button>
-    <button class="btn-outline" onclick="location.href='/assistant'">
-        🤖 Assistant
-    </button>
-</div>
-
-<!-- Status Cards -->
-<div class="card-grid">
-    <div class="card status-card">
-        <div class="card-icon">💻</div>
-        <div class="card-body">
-            <h3>System</h3>
-            <p class="status-value">{{ status.health.overall }}</p>
-            <p class="status-detail">RAM: {{ status.health.ram.percent }}% | Disk: {{ status.health.disk.free_gb }}GB free</p>
+<!-- SYSTEM STATUS -->
+<div class="content-grid">
+    <div class="grid-item">
+        <h2 class="heading-text">SYSTEM HEALTH</h2>
+        <div class="stat">
+            <span class="stat-num">{{ status.health.overall }}</span>
+            <span class="stat-label">OVERALL STATUS</span>
         </div>
+        <p class="body-text">RAM: {{ status.health.ram.percent }}% | DISK: {{ status.health.disk.free_gb }}GB FREE</p>
     </div>
 
-    <div class="card status-card">
-        <div class="card-icon">🔒</div>
-        <div class="card-body">
-            <h3>Security</h3>
-            <p class="status-value">{{ security_status.overall }}</p>
-            <p class="status-detail {{ security_status.color }}">{{ security_status.icon }} {{ security_status.detail }}</p>
+    <div class="grid-item">
+        <h2 class="heading-text">SECURITY STATUS</h2>
+        <div class="stat">
+            <span class="stat-num">{{ security_status.overall }}</span>
+            <span class="stat-label">PROTECTION LEVEL</span>
         </div>
+        <p class="body-text">{{ security_status.detail }}</p>
     </div>
 
-    <div class="card status-card">
-        <div class="card-icon">🧠</div>
-        <div class="card-body">
-            <h3>Learning Score</h3>
-            <p class="status-value score">{{ status.learning.learning_score|default(0) }}/100</p>
-            <div class="progress-bar">
-                <div class="progress-fill" style="width: {{ status.learning.learning_score|default(0) }}%"></div>
-            </div>
+    <div class="grid-item">
+        <h2 class="heading-text">PROCESSING</h2>
+        <div class="stat">
+            <span class="stat-num">{{ status.queue.completed }}</span>
+            <span class="stat-label">TASKS COMPLETED</span>
         </div>
-    </div>
-
-    <div class="card status-card">
-        <div class="card-icon">📊</div>
-        <div class="card-body">
-            <h3>Cycles</h3>
-            <p class="status-value">{{ status.cycles_completed }}</p>
-            <p class="status-detail">{{ status.queue.completed }} tasks completed</p>
-        </div>
-    </div>
-    
-    <div class="card status-card" onclick="location.href='/assistant'" style="cursor: pointer;">
-        <div class="card-icon">🤖</div>
-        <div class="card-body">
-            <h3>Assistant</h3>
-            <p class="status-value">Ready</p>
-            <p class="status-detail">Ask me anything</p>
-        </div>
+        <p class="body-text">{{ status.queue.pending }} TASKS PENDING</p>
     </div>
 </div>
 
-<!-- Recent Activity Feed -->
-<div class="card activity-feed-card">
-    <h3>📋 Recent Activity</h3>
-    {% if activity %}
-    <div class="activity-list">
-        {% for entry in activity %}
-        <div class="activity-item">
-            <span class="activity-time">{{ entry.timestamp[:19]|replace('T', ' ') }}</span>
-            <span class="activity-icon">
-                {% if entry.category == 'email' %}📧
-                {% elif entry.category == 'file' %}📁
-                {% elif entry.category == 'data' %}📊
-                {% elif entry.category == 'security' %}🔒
-                {% else %}⚙️{% endif %}
+<!-- MODULE STATUS -->
+<div class="content-grid">
+    <div class="grid-item">
+        <h2 class="subheading-text">EMAIL BRAIN</h2>
+        <div class="stat">
+            <span class="stat-num">
+                {% if status.learning.accuracy and 'email_reply' in status.learning.accuracy %}
+                    {{ status.learning.accuracy.email_reply.accuracy }}
+                {% else %}
+                    0
+                {% endif %}
             </span>
-            <span class="activity-detail">{{ entry.detail }}</span>
+            <span class="stat-label">ACCURACY %</span>
         </div>
-        {% endfor %}
-    </div>
-    {% else %}
-    <p class="empty-state">GhostOffice is ready. Run your first cycle to see activity here.</p>
-    {% endif %}
-</div>
-
-<!-- Module Status -->
-<div class="card-grid-3">
-    <div class="card module-card">
-        <h3>📧 Email Brain</h3>
-        <div class="module-stats">
-            <div class="stat">
-                <span class="stat-label">Accuracy</span>
-                <span class="stat-value">
-                    {% if status.learning.accuracy and 'email_reply' in status.learning.accuracy %}
-                        {{ status.learning.accuracy.email_reply.accuracy }}%
-                    {% else %}
-                        Learning...
-                    {% endif %}
-                </span>
-            </div>
-            <div class="stat">
-                <span class="stat-label">Contacts Known</span>
-                <span class="stat-value">{{ status.learning.contacts_learned|default(0) }}</span>
-            </div>
-        </div>
+        <p class="body-text">{{ status.learning.contacts_learned|default(0) }} CONTACTS KNOWN</p>
     </div>
 
-    <div class="card module-card">
-        <h3>📁 File Commander</h3>
-        <div class="module-stats">
-            <div class="stat">
-                <span class="stat-label">Accuracy</span>
-                <span class="stat-value">
-                    {% if status.learning.accuracy and 'file_categorize' in status.learning.accuracy %}
-                        {{ status.learning.accuracy.file_categorize.accuracy }}%
-                    {% else %}
-                        Learning...
-                    {% endif %}
-                </span>
-            </div>
-            <div class="stat">
-                <span class="stat-label">Categories</span>
-                <span class="stat-value">{{ status.learning.categories_learned|default(0) }}</span>
-            </div>
+    <div class="grid-item">
+        <h2 class="subheading-text">FILE COMMANDER</h2>
+        <div class="stat">
+            <span class="stat-num">
+                {% if status.learning.accuracy and 'file_categorize' in status.learning.accuracy %}
+                    {{ status.learning.accuracy.file_categorize.accuracy }}
+                {% else %}
+                    0
+                {% endif %}
+            </span>
+            <span class="stat-label">ACCURACY %</span>
         </div>
+        <p class="body-text">{{ status.learning.categories_learned|default(0) }} CATEGORIES</p>
     </div>
 
-    <div class="card module-card">
-        <h3>📊 Data Engine</h3>
-        <div class="module-stats">
-            <div class="stat">
-                <span class="stat-label">Accuracy</span>
-                <span class="stat-value">
-                    {% if status.learning.accuracy and 'data_extract' in status.learning.accuracy %}
-                        {{ status.learning.accuracy.data_extract.accuracy }}%
-                    {% else %}
-                        Learning...
-                    {% endif %}
-                </span>
-            </div>
-            <div class="stat">
-                <span class="stat-label">Vendors Mapped</span>
-                <span class="stat-value">{{ status.learning.categories_learned|default(0) }}</span>
-            </div>
+    <div class="grid-item">
+        <h2 class="subheading-text">DATA ENGINE</h2>
+        <div class="stat">
+            <span class="stat-num">
+                {% if status.learning.accuracy and 'data_extract' in status.learning.accuracy %}
+                    {{ status.learning.accuracy.data_extract.accuracy }}
+                {% else %}
+                    0
+                {% endif %}
+            </span>
+            <span class="stat-label">ACCURACY %</span>
         </div>
+        <p class="body-text">{{ status.learning.categories_learned|default(0) }} VENDORS MAPPED</p>
     </div>
 </div>
 
-<!-- Email Brain Preview -->
-<div class="card email-preview-card">
-    <h3>📧 Email Brain Preview</h3>
-    {% if processed_emails %}
-    <div class="email-list">
-        {% for email in processed_emails[:5] %}
-        <div class="email-item">
-            <div class="email-header">
-                <span class="email-from">{{ email.sender_name or email.sender }}</span>
-                <span class="email-time">{{ email.timestamp[:10]|default('') }}</span>
-            </div>
-            <div class="email-subject">{{ email.subject }}</div>
-            <div class="email-preview">{{ email.preview or email.summary[:80] if email.summary else '' }}...</div>
-            <div class="email-meta">
-                <span class="badge badge-{{ email.classification|lower }}">{{ email.classification }}</span>
-                <span class="email-action">{{ email.action_taken|default('Read') }}</span>
-            </div>
-        </div>
-        {% endfor %}
-    </div>
-    {% else %}
-    <div class="empty-state">
-        <p>📭 No emails processed yet</p>
-        <button class="btn-outline btn-sm" onclick="scanEmails()">Scan Emails Now</button>
-    </div>
-    {% endif %}
-</div>
-
-<!-- Predictions -->
-{% if status.learning.patterns %}
-<div class="card predictions-card">
-    <h3>🔮 Discovered Patterns</h3>
-    <div class="pattern-list">
-        {% for pattern in status.learning.patterns[:5] %}
-        <div class="pattern-item">
-            <span class="pattern-type {{ pattern.type }}">{{ pattern.type }}</span>
-            <span class="pattern-desc">{{ pattern.description }}</span>
-            <span class="pattern-conf">{{ (pattern.confidence * 100)|int }}%</span>
-        </div>
-        {% endfor %}
-    </div>
-</div>
-{% endif %}
-
-<!-- Activity Feed -->
-<div class="card activity-card">
-    <h3>📋 Recent Activity</h3>
-    <div id="activity-feed" class="activity-feed">
-        <p class="empty-state">Run a cycle to see activity here</p>
-    </div>
-</div>
-
-<!-- Data Flow Monitor -->
-<div class="card data-flow-card">
-    <h3>Data Flow Monitor</h3>
-    <div class="flow-monitor">
-        <div class="flow-card local-card">
-            <div class="flow-card-header">
-                <span class="flow-icon">💻</span>
-                <h4>Your Machine</h4>
-            </div>
-            <ul class="flow-list">
-                <li><span class="check">&#10003;</span> Emails processed locally</li>
-                <li><span class="check">&#10003;</span> Files analyzed on-device</li>
-                <li><span class="check">&#10003;</span> AI inference via Ollama</li>
-                <li><span class="check">&#10003;</span> Data encrypted at rest</li>
-                <li><span class="check">&#10003;</span> Zero external data transfer</li>
+<!-- DATA FLOW MONITOR -->
+<div class="content-grid">
+    <div class="grid-item">
+        <h2 class="heading-text">DATA FLOW MONITOR</h2>
+        <div class="content-box">
+            <h3 class="subheading-text">YOUR MACHINE</h3>
+            <ul class="body-text">
+                <li>✅ EMAILS PROCESSED LOCALLY</li>
+                <li>✅ FILES ANALYZED ON-DEVICE</li>
+                <li>✅ AI INFERENCE VIA OLLAMA</li>
+                <li>✅ DATA ENCRYPTED AT REST</li>
+                <li>✅ ZERO EXTERNAL DATA TRANSFER</li>
             </ul>
         </div>
-        
-        <div class="flow-center">
-            <div class="blocked-badge">🚫 BLOCKED</div>
-        </div>
-        
-        <div class="flow-card internet-card">
-            <div class="flow-card-header">
-                <span class="flow-icon">🌐</span>
-                <h4>Internet</h4>
-            </div>
-            <ul class="flow-list">
-                <li><span class="cross">&#10007;</span> Cloud API calls</li>
-                <li><span class="cross">&#10007;</span> External data uploads</li>
-                <li><span class="cross">&#10007;</span> Third-party sharing</li>
-                <li><span class="cross">&#10007;</span> Telemetry / analytics</li>
-                <li><span class="cross">&#10007;</span> Remote model hosting</li>
+    </div>
+
+    <div class="grid-item">
+        <h2 class="heading-text">INTERNET</h2>
+        <div class="content-box">
+            <h3 class="subheading-text">BLOCKED</h3>
+            <ul class="body-text">
+                <li>❌ CLOUD API CALLS</li>
+                <li>❌ EXTERNAL DATA UPLOADS</li>
+                <li>❌ THIRD-PARTY SHARING</li>
+                <li>❌ TELEMETRY / ANALYTICS</li>
+                <li>❌ REMOTE MODEL HOSTING</li>
             </ul>
         </div>
+    </div>
+</div>
+
+<!-- RECENT ACTIVITY -->
+<div class="content-grid">
+    <div class="grid-item">
+        <h2 class="heading-text">RECENT ACTIVITY</h2>
+        {% if activity %}
+        {% for entry in activity %}
+        <div class="content-box">
+            <span class="accent-text">{{ entry.timestamp[:19]|replace('T', ' ') }}</span>
+            <p class="body-text">{{ entry.detail }}</p>
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="content-box">
+            <p class="body-text">NO ACTIVITY YET — RUN YOUR FIRST CYCLE</p>
+        </div>
+        {% endif %}
     </div>
 </div>
 
 <script>
 async function runCycle() {
-    const btn = document.getElementById('run-cycle-btn');
+    const btn = document.querySelector('button:contains("RUN CYCLE")');
     btn.disabled = true;
-    btn.textContent = '⏳ Running...';
+    btn.textContent = 'RUNNING...';
 
     try {
         const res = await fetch('/run-cycle', { method: 'POST' });
         const data = await res.json();
 
         if (data.error) {
-            alert(data.error);
+            alert('ERROR: ' + data.error);
             if (data.needs_auth) window.location = '/login';
             return;
-        }
-
-        // Update activity feed
-        const feed = document.getElementById('activity-feed');
-        const time = new Date().toLocaleTimeString();
-        feed.innerHTML = `
-            <div class="activity-item success">
-                <span class="activity-time">${time}</span>
-                <span class="activity-text">
-                    Cycle #${data.cycle}: 
-                    ${data.emails_processed} emails, 
-                    ${data.files_organized} files, 
-                    ${data.data_entries} data entries
-                    (${data.duration_seconds}s)
-                </span>
-            </div>
-        ` + feed.innerHTML;
-
-        // Show predictions
-        if (data.predictions && data.predictions.length > 0) {
-            data.predictions.forEach(p => {
-                feed.innerHTML = `
-                    <div class="activity-item prediction">
-                        <span class="activity-time">${time}</span>
-                        <span class="activity-text">🔮 ${p.message}</span>
-                    </div>
-                ` + feed.innerHTML;
-            });
-        }
-
-        // Show errors
-        if (data.errors && data.errors.length > 0) {
-            data.errors.forEach(e => {
-                feed.innerHTML = `
-                    <div class="activity-item error">
-                        <span class="activity-time">${time}</span>
-                        <span class="activity-text">⚠️ ${e}</span>
-                    </div>
-                ` + feed.innerHTML;
-            });
         }
 
         // Refresh page data
         setTimeout(() => location.reload(), 2000);
 
     } catch (err) {
-        alert('Error: ' + err.message);
+        alert('ERROR: ' + err.message);
     } finally {
         btn.disabled = false;
-        btn.textContent = '▶️ Run Cycle';
+        btn.textContent = 'RUN CYCLE';
     }
 }
 
 async function scanEmails() {
     {% if demo_mode %}
-    showDemoToast();
+    alert('DEMO MODE — CONFIGURE .ENV FOR LIVE PROCESSING');
     {% else %}
     try {
         const res = await fetch('/run-cycle', { method: 'POST' });
         const data = await res.json();
         if (data.error) {
-            alert(data.error);
+            alert('ERROR: ' + data.error);
             if (data.needs_auth) window.location = '/login';
             return;
         }
-        alert(`Scanned ${data.emails_processed || 0} emails`);
+        alert('SCANNED ' + (data.emails_processed || 0) + ' EMAILS');
         setTimeout(() => location.reload(), 1500);
     } catch (err) {
-        alert('Error: ' + err.message);
+        alert('ERROR: ' + err.message);
     }
     {% endif %}
 }
 
 async function sortFiles() {
     {% if demo_mode %}
-    showDemoToast();
+    alert('DEMO MODE — CONFIGURE .ENV FOR LIVE PROCESSING');
     {% else %}
     try {
         const res = await fetch('/run-cycle', { method: 'POST' });
         const data = await res.json();
         if (data.error) {
-            alert(data.error);
+            alert('ERROR: ' + data.error);
             if (data.needs_auth) window.location = '/login';
             return;
         }
-        alert(`Sorted ${data.files_organized || 0} files`);
+        alert('SORTED ' + (data.files_organized || 0) + ' FILES');
         setTimeout(() => location.reload(), 1500);
     } catch (err) {
-        alert('Error: ' + err.message);
+        alert('ERROR: ' + err.message);
     }
     {% endif %}
 }
-
-async function extractData() {
-    {% if demo_mode %}
-    showDemoToast();
-    {% else %}
-    try {
-        const res = await fetch('/run-cycle', { method: 'POST' });
-        const data = await res.json();
-        if (data.error) {
-            alert(data.error);
-            if (data.needs_auth) window.location = '/login';
-            return;
-        }
-        alert(`Extracted ${data.data_entries || 0} data entries`);
-        setTimeout(() => location.reload(), 1500);
-    } catch (err) {
-        alert('Error: ' + err.message);
-    }
-    {% endif %}
-}
-
-let isContinuous = false;
-function toggleContinuous() {
-    {% if demo_mode %}
-    showDemoToast();
-    {% else %}
-    const btn = document.getElementById('continuous-btn');
-    if (!isContinuous) {
-        fetch('/start-continuous', { method: 'POST' });
-        btn.textContent = '⏹️ Stop Continuous';
-        btn.classList.add('active');
-        isContinuous = true;
-    } else {
-        fetch('/stop', { method: 'POST' });
-        btn.textContent = '🔄 Start Continuous';
-        btn.classList.remove('active');
-        isContinuous = false;
-    }
-    {% endif %}
-}
-
-let isDemoMode = {{ 'true' if demo_mode else 'false' }};
-
-function showDemoToast() {
-    const toast = document.createElement('div');
-    toast.className = 'demo-toast';
-    toast.innerHTML = '<span class="toast-icon">👻</span> Demo mode — configure your .env to enable live processing';
-    document.body.appendChild(toast);
-    setTimeout(() => toast.classList.add('show'), 10);
-    setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
-}
-
-{% if not demo_mode %}
-// Auto-refresh status every 30 seconds
-setInterval(async () => {
-    try {
-        const res = await fetch('/api/status');
-        const data = await res.json();
-        // Update cards dynamically
-    } catch (e) {}
-}, 30000);
-{% endif %}
 </script>
 {% endblock %}

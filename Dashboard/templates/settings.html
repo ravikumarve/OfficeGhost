@@ -9,6 +9,63 @@
     </div>
 </div>
 
+{% if force_password_change %}
+<div class="card" style="border: 2px solid #ef4444; background: #fef2f2;">
+    <h3 style="color: #dc2626;">⚠️ Password Change Required</h3>
+    <p>You must change your password before continuing to use the application.</p>
+</div>
+{% endif %}
+
+<div class="card">
+    <h3>🔐 Change Password</h3>
+    <form method="POST" action="/change-password">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        
+        <div class="form-group">
+            <label for="old_password">Current Password</label>
+            <input
+                type="password"
+                id="old_password"
+                name="old_password"
+                placeholder="Enter current password"
+                required
+                autocomplete="current-password"
+            >
+        </div>
+        
+        <div class="form-group">
+            <label for="new_password">New Password</label>
+            <input
+                type="password"
+                id="new_password"
+                name="new_password"
+                placeholder="Minimum 12 characters"
+                required
+                minlength="12"
+                autocomplete="new-password"
+            >
+            <div id="password-strength" class="password-strength"></div>
+        </div>
+        
+        <div class="form-group">
+            <label for="confirm_password">Confirm New Password</label>
+            <input
+                type="password"
+                id="confirm_password"
+                name="confirm_password"
+                placeholder="Type new password again"
+                required
+                minlength="12"
+                autocomplete="new-password"
+            >
+        </div>
+        
+        <button type="submit" class="btn-primary">
+            🔐 Change Password
+        </button>
+    </form>
+</div>
+
 <div class="card">
     <h3>🤖 AI Model</h3>
     <p>Select the Ollama model to use for AI processing:</p>
@@ -245,5 +302,29 @@ async function submitWatchFolder() {
         status.innerHTML = '<span class="error">Error: ' + err.message + '</span>';
     }
 }
+
+// Password strength checker
+document.getElementById('new_password')?.addEventListener('input', function(e) {
+    const pw = e.target.value;
+    let score = 0;
+    if (pw.length >= 12) score++;
+    if (pw.length >= 16) score++;
+    if (/[A-Z]/.test(pw) && /[a-z]/.test(pw)) score++;
+    if (/\d/.test(pw)) score++;
+    if (/[!@#$%^&*()_+\-=]/.test(pw)) score++;
+
+    const labels = ['Very Weak', 'Weak', 'Fair', 'Good', 'Strong', 'Very Strong'];
+    const colors = ['#ef4444', '#f97316', '#eab308', '#84cc16', '#22c55e', '#10b981'];
+
+    const el = document.getElementById('password-strength');
+    if (el) {
+        el.innerHTML = `
+            <div class="strength-bar">
+                <div class="strength-fill" style="width:${score*20}%;background:${colors[score]}"></div>
+            </div>
+            <span style="color:${colors[score]}">${labels[score]}</span>
+        `;
+    }
+});
 </script>
 {% endblock %}

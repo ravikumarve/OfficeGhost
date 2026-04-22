@@ -11,7 +11,7 @@
 
 <br/>
 
-[![Version](https://img.shields.io/badge/version-v3.0.1-0d1117?style=for-the-badge&labelColor=58a6ff&color=0d1117)](https://github.com/ravikumarve/OfficeGhost/releases)
+[![Version](https://img.shields.io/badge/version-v3.1.0-0d1117?style=for-the-badge&labelColor=58a6ff&color=0d1117)](https://github.com/ravikumarve/OfficeGhost/releases)
 [![Python](https://img.shields.io/badge/python-3.8+-0d1117?style=for-the-badge&logo=python&logoColor=white&labelColor=3572A5&color=0d1117)](https://python.org)
 [![Tests](https://img.shields.io/badge/tests-41%20passing-0d1117?style=for-the-badge&labelColor=238636&color=0d1117)](https://github.com/ravikumarve/OfficeGhost/tree/main/Tests)
 [![License](https://img.shields.io/badge/license-MIT-0d1117?style=for-the-badge&labelColor=6e40c9&color=0d1117)](LICENSE)
@@ -31,11 +31,57 @@
 
 <br/>
 
-[**Get Started →**](#-quick-start) &nbsp;·&nbsp; [**View Demo**](#-screenshots) &nbsp;·&nbsp; [**Documentation**](#-documentation) &nbsp;·&nbsp; [**Roadmap**](#-roadmap)
+[**🛒 Purchase on Gumroad**](#-purchase-on-gumroad) &nbsp;·&nbsp; [**Get Started →**](#-quick-start) &nbsp;·&nbsp; [**View Demo**](#-screenshots) &nbsp;·&nbsp; [**Documentation**](#-documentation) &nbsp;·&nbsp; [**Roadmap**](#-roadmap)
 
 ---
 
 </div>
+
+## 🛒 Purchase on Gumroad
+
+**Get GhostOffice with a one-time purchase - No subscriptions!**
+
+### Why Buy on Gumroad?
+
+- ✅ **One-time payment** - No monthly fees
+- ✅ **Lifetime updates** - Get all future versions
+- ✅ **Priority support** - Direct access to the developer
+- ✅ **Money-back guarantee** - 30-day refund policy
+- ✅ **Support open source** - Help fund continued development
+
+### Purchase Options
+
+| Plan | Price | Features |
+|------|-------|----------|
+| **Personal** | $29 | Single user, all features |
+| **Team** | $79 | Up to 5 users, team collaboration |
+| **Enterprise** | $199 | Unlimited users, priority support |
+
+[**🛒 Buy Now on Gumroad**](https://gumroad.com/l/ghostoffice)
+
+### After Purchase
+
+1. **Download** the package from Gumroad
+2. **Extract** the zip file to your desired location
+3. **Run** the installation script:
+   ```bash
+   chmod +x install.sh
+   ./install.sh
+   ```
+4. **Start** GhostOffice:
+   ```bash
+   source venv/bin/activate
+   python3 main.py
+   ```
+5. **Access** the dashboard at http://localhost:5000
+
+### Need Help?
+
+- 📖 [Quick Start Guide](QUICKSTART.md) - Get started in 5 minutes
+- 📧 [Email Support](mailto:support@ghostoffice.local) - Get help from the team
+- 💬 [Community Discord](https://discord.gg/ghostoffice) - Chat with other users
+
+---
 
 ## 📋 Table of Contents
 
@@ -226,7 +272,14 @@ python3 setup.py
 cp .env.example .env
 nano .env                       # Add your email credentials
 
-# 7. Launch GhostOffice
+# 7. ⚠️ CRITICAL: Set security secrets
+# Generate secure secrets and add to .env file
+JWT_SECRET=$(python -c 'import secrets; print(secrets.token_hex(32))')
+FLASK_SECRET_KEY=$(python -c 'import secrets; print(secrets.token_hex(32))')
+echo "JWT_SECRET=$JWT_SECRET" >> .env
+echo "FLASK_SECRET_KEY=$FLASK_SECRET_KEY" >> .env
+
+# 8. Launch GhostOffice
 python3 main.py
 ```
 
@@ -261,6 +314,56 @@ GhostOffice is built with a security-first mindset. Every byte of sensitive data
 - ✅ TOTP 2FA (Google Authenticator, Authy)
 - ✅ Biometric unlock — Windows Hello · Touch ID · Linux PAM
 - ✅ Session tokens with automatic refresh and expiry
+- ✅ **Forced password change on first login**
+- ✅ **CSRF protection on all forms**
+
+### ⚠️ Required Security Configuration
+
+**Before launching GhostOffice in production, you MUST set these environment variables:**
+
+#### 1. JWT_SECRET (Required)
+```bash
+# Generate a secure JWT secret
+JWT_SECRET=$(python -c 'import secrets; print(secrets.token_hex(32))')
+
+# Add to your .env file
+echo "JWT_SECRET=$JWT_SECRET" >> .env
+```
+
+**Why it's required**: JWT tokens are used for session authentication. Without a secure secret, tokens could be forged, allowing unauthorized access.
+
+#### 2. FLASK_SECRET_KEY (Required)
+```bash
+# Generate a secure Flask secret
+FLASK_SECRET_KEY=$(python -c 'import secrets; print(secrets.token_hex(32))')
+
+# Add to your .env file
+echo "FLASK_SECRET_KEY=$FLASK_SECRET_KEY" >> .env
+```
+
+**Why it's required**: Flask secret key is used for CSRF protection and session security. Without it, your application is vulnerable to cross-site request forgery attacks.
+
+#### 3. First-Time Setup Security
+
+When you first launch GhostOffice:
+- A **random temporary password** will be generated for the admin account
+- This password will be **displayed in your console** - save it securely
+- You will be **forced to change this password** on first login
+- Your new password must meet **strength requirements**:
+  - Minimum 12 characters
+  - Both uppercase and lowercase letters
+  - At least one digit
+  - At least one special character (!@#$%^&*()_+-=[]{}|;:,.<>?)
+
+#### 4. Security Best Practices
+
+- ✅ **Never commit** `.env` file to version control
+- ✅ **Use strong, unique passwords** for all accounts
+- ✅ **Enable 2FA** for additional security
+- ✅ **Keep dependencies updated** with `pip install --upgrade -r requirements.txt`
+- ✅ **Run security tests** with `python3 Tests/test_security_fixes.py`
+- ✅ **Monitor logs** for suspicious activity
+- ✅ **Backup regularly** using the built-in backup feature
 
 ### Network Security
 - ✅ IP allowlisting
